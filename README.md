@@ -16,6 +16,8 @@ A comprehensive ROS2 driver for Basicmicro motor controllers (RoboClaw and MCP s
    ```bash
    ./install.sh
    ```
+   
+   > **Note**: The install script has execute permissions set in the repository, so you can run it directly after cloning.
 
 The installer will:
 - Check and install ROS2 if needed
