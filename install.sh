@@ -394,11 +394,46 @@ except Exception as e:
 create_launch_script() {
     print_status "Creating launch script..."
     
-    cat > "$DEFAULT_WORKSPACE_PATH/launch_basicmicro.sh" << 'EOF'
+    if [ "$INSTALL_MODE" = "system-wide" ]; then
+        # System-wide installation - simple launch script that works from anywhere
+        cat > "$HOME/launch_basicmicro.sh" << 'EOF'
 #!/bin/bash
 
-# Basicmicro ROS2 Driver Launch Script
-# This script sets up the environment and launches the driver
+# Basicmicro ROS2 Driver Launch Script (System-wide)
+# This script launches the driver from any directory
+
+# Configuration
+DEFAULT_PORT="/dev/ttyACM0"
+
+# Colors for output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+# Check for port argument
+if [ "$#" -gt 0 ]; then
+    PORT="$1"
+else
+    PORT="$DEFAULT_PORT"
+fi
+
+echo -e "${GREEN}[INFO]${NC} Launching Basicmicro ROS2 driver on port: $PORT"
+
+# Launch the driver (works from any directory)
+echo -e "${GREEN}[INFO]${NC} Starting Basicmicro ROS2 driver..."
+ros2 run basicmicro_driver basicmicro_node.py --ros-args -p port:=$PORT
+
+EOF
+        chmod +x "$HOME/launch_basicmicro.sh"
+        print_success "Launch script created: $HOME/launch_basicmicro.sh"
+    else
+        # Development installation - workspace-based launch script
+        cat > "$DEFAULT_WORKSPACE_PATH/launch_basicmicro.sh" << 'EOF'
+#!/bin/bash
+
+# Basicmicro ROS2 Driver Launch Script (Development)
+# This script sets up the development environment and launches the driver
 
 # Configuration
 WORKSPACE_PATH="$HOME/ros2_ws"
@@ -434,7 +469,12 @@ else
 fi
 
 # Source workspace
-source install/setup.bash
+if [ -f "install/setup.bash" ]; then
+    source install/setup.bash
+else
+    echo -e "${RED}[ERROR]${NC} Workspace not built. Please run: colcon build --packages-select basicmicro_driver"
+    exit 1
+fi
 
 # Activate virtual environment if used
 if [ "$USE_VIRTUAL_ENV" = true ] && [ -d "venv" ]; then
@@ -447,9 +487,9 @@ echo -e "${GREEN}[INFO]${NC} Starting Basicmicro ROS2 driver..."
 ros2 run basicmicro_driver basicmicro_node.py --ros-args -p port:=$PORT
 
 EOF
-
-    chmod +x "$DEFAULT_WORKSPACE_PATH/launch_basicmicro.sh"
-    print_success "Launch script created: $DEFAULT_WORKSPACE_PATH/launch_basicmicro.sh"
+        chmod +x "$DEFAULT_WORKSPACE_PATH/launch_basicmicro.sh"
+        print_success "Launch script created: $DEFAULT_WORKSPACE_PATH/launch_basicmicro.sh"
+    fi
 }
 
 # Function to display final instructions
@@ -462,18 +502,28 @@ display_final_instructions() {
     echo -e "${BLUE}Quick Start:${NC}"
     echo -e "1. Connect your Basicmicro controller via USB"
     echo -e "2. Run the launch script:"
-    echo -e "   ${YELLOW}cd $DEFAULT_WORKSPACE_PATH${NC}"
-    echo -e "   ${YELLOW}./launch_basicmicro.sh /dev/ttyACM0${NC}"
+    if [ "$INSTALL_MODE" = "system-wide" ]; then
+        echo -e "   ${YELLOW}~/launch_basicmicro.sh /dev/ttyACM0${NC}"
+        echo -e "   ${YELLOW}# Works from any directory${NC}"
+    else
+        echo -e "   ${YELLOW}cd $DEFAULT_WORKSPACE_PATH${NC}"
+        echo -e "   ${YELLOW}./launch_basicmicro.sh /dev/ttyACM0${NC}"
+    fi
     echo -e "   ${YELLOW}# Replace /dev/ttyACM0 with your actual port${NC}"
     echo ""
     echo -e "${BLUE}Manual Launch:${NC}"
-    echo -e "   ${YELLOW}cd $DEFAULT_WORKSPACE_PATH${NC}"
-    echo -e "   ${YELLOW}source /opt/ros/$ROS_DISTRO/setup.bash${NC}"
-    echo -e "   ${YELLOW}source install/setup.bash${NC}"
-    if [ "$USE_VIRTUAL_ENV" = true ]; then
-        echo -e "   ${YELLOW}source venv/bin/activate${NC}"
+    if [ "$INSTALL_MODE" = "system-wide" ]; then
+        echo -e "   ${YELLOW}ros2 run basicmicro_driver basicmicro_node.py --ros-args -p port:=/dev/ttyACM0${NC}"
+        echo -e "   ${YELLOW}# Works from any directory${NC}"
+    else
+        echo -e "   ${YELLOW}cd $DEFAULT_WORKSPACE_PATH${NC}"
+        echo -e "   ${YELLOW}source /opt/ros/$ROS_DISTRO/setup.bash${NC}"
+        echo -e "   ${YELLOW}source install/setup.bash${NC}"
+        if [ "$USE_VIRTUAL_ENV" = true ]; then
+            echo -e "   ${YELLOW}source venv/bin/activate${NC}"
+        fi
+        echo -e "   ${YELLOW}ros2 run basicmicro_driver basicmicro_node.py --ros-args -p port:=/dev/ttyACM0${NC}"
     fi
-    echo -e "   ${YELLOW}ros2 run basicmicro_driver basicmicro_node.py --ros-args -p port:=/dev/ttyACM0${NC}"
     echo -e "   ${YELLOW}# Replace /dev/ttyACM0 with your actual port${NC}"
     echo ""
     echo -e "${BLUE}Test Motor Movement:${NC}"
