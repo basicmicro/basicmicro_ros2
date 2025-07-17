@@ -1,0 +1,384 @@
+<?xml version="1.0"?>
+<!-- 
+Two-Axis Arm URDF with Basicmicro Servo Position Control
+========================================================
+This URDF describes a 2-DOF robotic arm using Basicmicro motor controllers
+with servo positioning capabilities. Each joint is independently controlled
+with absolute positioning, homing, and trajectory execution.
+
+Usage:
+  xacro two_axis_arm.urdf.xacro > arm.urdf
+
+Key Features:
+  - 2-DOF servo-controlled arm (shoulder and elbow joints)
+  - Absolute positioning with encoder feedback
+  - Homing capabilities for calibration
+  - Trajectory execution with buffer management
+  - Forward/inverse kinematics support
+  - MoveIt! integration ready
+  - Real-time joint state feedback
+
+Parameters (can be overridden via xacro arguments):
+  - port: Serial port (default: /dev/ttyACM1)
+  - baud: Baud rate (default: 38400)
+  - address: Controller address (default: 128)
+  - joint1_limits: Joint 1 position limits in radians (default: ±π)
+  - joint2_limits: Joint 2 position limits in radians (default: ±π/2)
+  - link1_length: Length of first arm segment (default: 0.3m)
+  - link2_length: Length of second arm segment (default: 0.25m)
+  - max_velocity: Maximum joint velocity (default: 2.0 rad/s)
+  - max_acceleration: Maximum joint acceleration (default: 5.0 rad/s²)
+-->
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="basicmicro_two_axis_arm">
+
+  <!-- Xacro arguments with arm defaults -->
+  <xacro:arg name="port" default="/dev/ttyACM1"/>
+  <xacro:arg name="baud" default="38400"/>
+  <xacro:arg name="address" default="128"/>
+  <xacro:arg name="joint1_min_position" default="${-pi}"/>
+  <xacro:arg name="joint1_max_position" default="${pi}"/>
+  <xacro:arg name="joint2_min_position" default="${-pi/2}"/>
+  <xacro:arg name="joint2_max_position" default="${pi/2}"/>
+  <xacro:arg name="link1_length" default="0.3"/>
+  <xacro:arg name="link2_length" default="0.25"/>
+  <xacro:arg name="max_velocity" default="2.0"/>
+  <xacro:arg name="max_acceleration" default="5.0"/>
+  <xacro:arg name="gear_ratio" default="50.0"/>
+  <xacro:arg name="encoder_counts_per_rev" default="2000"/>
+
+  <!-- Arm Physical Properties -->
+  <xacro:property name="link1_length" value="$(arg link1_length)"/>
+  <xacro:property name="link2_length" value="$(arg link2_length)"/>
+  <xacro:property name="joint_radius" value="0.05"/>
+  <xacro:property name="link_radius" value="0.03"/>
+  
+  <!-- Base properties -->
+  <xacro:property name="base_radius" value="0.1"/>
+  <xacro:property name="base_height" value="0.08"/>
+  <xacro:property name="base_mass" value="2.0"/>
+  
+  <!-- Link masses and inertias -->
+  <xacro:property name="link1_mass" value="1.5"/>
+  <xacro:property name="link2_mass" value="1.0"/>
+  <xacro:property name="joint_mass" value="0.5"/>
+  
+  <!-- End-effector properties -->
+  <xacro:property name="ee_radius" value="0.02"/>
+  <xacro:property name="ee_length" value="0.05"/>
+  <xacro:property name="ee_mass" value="0.2"/>
+
+  <!-- Arm Colors -->
+  <material name="arm_blue">
+    <color rgba="0.2 0.4 0.8 1.0"/>
+  </material>
+  
+  <material name="arm_silver">
+    <color rgba="0.7 0.7 0.7 1.0"/>
+  </material>
+  
+  <material name="arm_black">
+    <color rgba="0.1 0.1 0.1 1.0"/>
+  </material>
+  
+  <material name="arm_red">
+    <color rgba="0.8 0.2 0.2 1.0"/>
+  </material>
+
+  <!-- Inertia Macros -->
+  <xacro:macro name="cylinder_inertia" params="mass radius length">
+    <inertial>
+      <mass value="${mass}"/>
+      <inertia ixx="${mass * (3*radius*radius + length*length) / 12}"
+               iyy="${mass * (3*radius*radius + length*length) / 12}"
+               izz="${mass * radius*radius / 2}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="sphere_inertia" params="mass radius">
+    <inertial>
+      <mass value="${mass}"/>
+      <inertia ixx="${2 * mass * radius*radius / 5}"
+               iyy="${2 * mass * radius*radius / 5}"
+               izz="${2 * mass * radius*radius / 5}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </xacro:macro>
+
+  <!-- Base Link (Fixed mounting base) -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <cylinder radius="${base_radius}" length="${base_height}"/>
+      </geometry>
+      <material name="arm_silver"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${base_radius}" length="${base_height}"/>
+      </geometry>
+    </collision>
+    <xacro:cylinder_inertia mass="${base_mass}" radius="${base_radius}" length="${base_height}"/>
+  </link>
+
+  <!-- Shoulder Joint Housing -->
+  <link name="shoulder_joint_housing">
+    <visual>
+      <geometry>
+        <sphere radius="${joint_radius}"/>
+      </geometry>
+      <material name="arm_black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <sphere radius="${joint_radius}"/>
+      </geometry>
+    </collision>
+    <xacro:sphere_inertia mass="${joint_mass}" radius="${joint_radius}"/>
+  </link>
+
+  <!-- Link 1 (Upper arm) -->
+  <link name="link1">
+    <visual>
+      <origin xyz="0 0 ${link1_length/2}" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="${link_radius}" length="${link1_length}"/>
+      </geometry>
+      <material name="arm_blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${link1_length/2}" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="${link_radius}" length="${link1_length}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 ${link1_length/2}" rpy="0 0 0"/>
+      <mass value="${link1_mass}"/>
+      <inertia ixx="${link1_mass * (3*link_radius*link_radius + link1_length*link1_length) / 12}"
+               iyy="${link1_mass * (3*link_radius*link_radius + link1_length*link1_length) / 12}"
+               izz="${link1_mass * link_radius*link_radius / 2}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- Elbow Joint Housing -->
+  <link name="elbow_joint_housing">
+    <visual>
+      <geometry>
+        <sphere radius="${joint_radius}"/>
+      </geometry>
+      <material name="arm_black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <sphere radius="${joint_radius}"/>
+      </geometry>
+    </collision>
+    <xacro:sphere_inertia mass="${joint_mass}" radius="${joint_radius}"/>
+  </link>
+
+  <!-- Link 2 (Forearm) -->
+  <link name="link2">
+    <visual>
+      <origin xyz="0 0 ${link2_length/2}" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="${link_radius}" length="${link2_length}"/>
+      </geometry>
+      <material name="arm_blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${link2_length/2}" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="${link_radius}" length="${link2_length}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 ${link2_length/2}" rpy="0 0 0"/>
+      <mass value="${link2_mass}"/>
+      <inertia ixx="${link2_mass * (3*link_radius*link_radius + link2_length*link2_length) / 12}"
+               iyy="${link2_mass * (3*link_radius*link_radius + link2_length*link2_length) / 12}"
+               izz="${link2_mass * link_radius*link_radius / 2}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- End Effector -->
+  <link name="end_effector">
+    <visual>
+      <origin xyz="0 0 ${ee_length/2}" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="${ee_radius}" length="${ee_length}"/>
+      </geometry>
+      <material name="arm_red"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${ee_length/2}" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="${ee_radius}" length="${ee_length}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 ${ee_length/2}" rpy="0 0 0"/>
+      <mass value="${ee_mass}"/>
+      <inertia ixx="${ee_mass * (3*ee_radius*ee_radius + ee_length*ee_length) / 12}"
+               iyy="${ee_mass * (3*ee_radius*ee_radius + ee_length*ee_length) / 12}"
+               izz="${ee_mass * ee_radius*ee_radius / 2}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- Base to Shoulder Joint Housing -->
+  <joint name="base_to_shoulder" type="fixed">
+    <parent link="base_link"/>
+    <child link="shoulder_joint_housing"/>
+    <origin xyz="0 0 ${base_height/2}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Joint 1: Shoulder (Rotation around Z-axis) -->
+  <joint name="joint1" type="revolute">
+    <parent link="shoulder_joint_housing"/>
+    <child link="link1"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="$(arg joint1_min_position)" 
+           upper="$(arg joint1_max_position)"
+           effort="50.0" 
+           velocity="$(arg max_velocity)"/>
+  </joint>
+
+  <!-- Link 1 to Elbow Joint Housing -->
+  <joint name="link1_to_elbow" type="fixed">
+    <parent link="link1"/>
+    <child link="elbow_joint_housing"/>
+    <origin xyz="0 0 ${link1_length}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Joint 2: Elbow (Rotation around Y-axis) -->
+  <joint name="joint2" type="revolute">
+    <parent link="elbow_joint_housing"/>
+    <child link="link2"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="$(arg joint2_min_position)" 
+           upper="$(arg joint2_max_position)"
+           effort="30.0" 
+           velocity="$(arg max_velocity)"/>
+  </joint>
+
+  <!-- Link 2 to End Effector -->
+  <joint name="link2_to_end_effector" type="fixed">
+    <parent link="link2"/>
+    <child link="end_effector"/>
+    <origin xyz="0 0 ${link2_length}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ros2_control Hardware Interface (Servo Position Control) -->
+  <ros2_control name="BasicmicroArmSystem" type="system">
+    <hardware>
+      <plugin>basicmicro_driver/BasicmicroHardwareInterface</plugin>
+      
+      <!-- Hardware connection parameters -->
+      <param name="port">$(arg port)</param>
+      <param name="baud">$(arg baud)</param>
+      <param name="address">$(arg address)</param>
+      
+      <!-- Arm physical parameters -->
+      <param name="gear_ratio">$(arg gear_ratio)</param>
+      <param name="encoder_counts_per_rev">$(arg encoder_counts_per_rev)</param>
+      
+      <!-- Servo control parameters -->
+      <param name="motion_strategy">position</param>
+      <param name="buffer_depth">16</param>
+      <param name="default_acceleration">$(arg max_acceleration)</param>
+      <param name="max_velocity">$(arg max_velocity)</param>
+      <param name="max_acceleration">$(arg max_acceleration)</param>
+      
+      <!-- Servo positioning parameters -->
+      <param name="servo_control_enabled">true</param>
+      <param name="position_tolerance">0.01</param>
+      <param name="max_position_error">1000</param>
+      <param name="max_speed_error">500</param>
+      <param name="servo_update_rate">50.0</param>
+      
+      <!-- Homing configuration -->
+      <param name="auto_home_on_startup">false</param>
+      <param name="default_homing_method">manual_zero</param>
+      <param name="homing_speed">0.1</param>
+      <param name="homing_timeout">30.0</param>
+      
+      <!-- Joint limits and safety -->
+      <param name="position_limits_enabled">true</param>
+      <param name="joint1_min_position">$(arg joint1_min_position)</param>
+      <param name="joint1_max_position">$(arg joint1_max_position)</param>
+      <param name="joint2_min_position">$(arg joint2_min_position)</param>
+      <param name="joint2_max_position">$(arg joint2_max_position)</param>
+      <param name="limit_violation_behavior">soft_stop</param>
+      <param name="limit_decel_rate">10.0</param>
+      
+      <!-- Monitoring parameters -->
+      <param name="current_monitoring_enabled">true</param>
+      <param name="temperature_monitoring_enabled">true</param>
+      <param name="voltage_monitoring_enabled">true</param>
+      <param name="max_current_threshold">5.0</param>
+      <param name="max_temperature_threshold">70.0</param>
+      <param name="min_voltage_threshold">11.0</param>
+    </hardware>
+    
+    <!-- Joint 1 Interface (Shoulder) -->
+    <joint name="joint1">
+      <command_interface name="position">
+        <param name="min">$(arg joint1_min_position)</param>
+        <param name="max">$(arg joint1_max_position)</param>
+      </command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    
+    <!-- Joint 2 Interface (Elbow) -->
+    <joint name="joint2">
+      <command_interface name="position">
+        <param name="min">$(arg joint2_min_position)</param>
+        <param name="max">$(arg joint2_max_position)</param>
+      </command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+  </ros2_control>
+
+  <!-- Gazebo Integration -->
+  <gazebo>
+    <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+      <parameters>$(find basicmicro_driver)/config/arm_controllers.yaml</parameters>
+    </plugin>
+  </gazebo>
+
+  <!-- Gazebo Material Properties -->
+  <gazebo reference="base_link">
+    <material>Gazebo/Grey</material>
+  </gazebo>
+  
+  <gazebo reference="shoulder_joint_housing">
+    <material>Gazebo/Black</material>
+  </gazebo>
+  
+  <gazebo reference="link1">
+    <material>Gazebo/Blue</material>
+  </gazebo>
+  
+  <gazebo reference="elbow_joint_housing">
+    <material>Gazebo/Black</material>
+  </gazebo>
+  
+  <gazebo reference="link2">
+    <material>Gazebo/Blue</material>
+  </gazebo>
+  
+  <gazebo reference="end_effector">
+    <material>Gazebo/Red</material>
+  </gazebo>
+
+</robot>

@@ -1,0 +1,8 @@
+# Service to set motion parameters at runtime
+
+int32 default_acceleration  # Default acceleration (encoder counts/s²)
+int32 max_speed             # Maximum speed limit (encoder counts/s)  
+int32 buffer_depth          # Command buffer depth (1-32)
+---
+bool success                # Whether the parameters were set successfully
+string message              # Status message or error description

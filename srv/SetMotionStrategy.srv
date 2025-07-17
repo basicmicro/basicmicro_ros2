@@ -1,0 +1,7 @@
+# Service to set the motion strategy at runtime
+# Supported strategies: 'duty', 'duty_accel', 'speed', 'speed_accel'
+
+string strategy  # Motion strategy name
+---
+bool success     # Whether the strategy was set successfully
+string message   # Status message or error description

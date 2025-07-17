@@ -1,0 +1,269 @@
+# Example Robot Parameter Configuration
+# ====================================
+# This file provides examples of how to configure different types of robots
+# with the Basicmicro driver. Copy and modify these examples for your robot.
+
+# Example 1: Small Differential Drive Robot (TurtleBot-style)
+# ===========================================================
+small_diff_drive:
+  # Hardware connection
+  port: "/dev/ttyACM0"
+  baud: 38400
+  address: 128  # 0x80
+  
+  # Physical parameters
+  wheel_radius: 0.065        # meters - small robot wheels
+  wheel_separation: 0.287    # meters - TurtleBot3 Burger spacing
+  encoder_counts_per_rev: 1000
+  gear_ratio: 1.0
+  
+  # Motion control
+  motion_strategy: "speed_accel"
+  default_acceleration: 500   # encoder counts/sec² - conservative for small robot
+  buffer_depth: 2            # minimal buffering for responsive control
+  
+  # Servo parameters
+  encoder_type: "incremental"
+  auto_home_on_startup: false
+  position_limits_enabled: false
+  
+  # Monitoring
+  enable_monitoring: true
+  monitoring_rate: 25.0      # Hz - sufficient for small robot
+  enable_diagnostics: true
+  diagnostic_rate: 1.0       # Hz - basic monitoring
+  enable_performance_monitoring: false  # not needed for simple robots
+
+# Example 2: Medium Industrial Robot
+# ==================================
+medium_industrial:
+  # Hardware connection
+  port: "/dev/ttyUSB0"       # USB-to-serial adapter for Async Serial
+  baud: 115200               # higher baud for better performance
+  address: 128
+  
+  # Physical parameters
+  wheel_radius: 0.15         # meters - larger industrial wheels
+  wheel_separation: 0.6      # meters - wider base for stability
+  encoder_counts_per_rev: 2000  # higher resolution encoders
+  gear_ratio: 4.0            # gear reduction for more torque
+  
+  # Motion control
+  motion_strategy: "speed_accel"
+  default_acceleration: 1500  # encoder counts/sec² - higher performance
+  buffer_depth: 8            # more buffering for smooth industrial motion
+  
+  # Servo parameters  
+  encoder_type: "incremental"
+  auto_home_on_startup: false
+  position_limits_enabled: true   # safety limits for industrial use
+  min_position_left: -50000       # encoder counts
+  max_position_left: 50000
+  min_position_right: -50000
+  max_position_right: 50000
+  limit_violation_behavior: "soft_stop"
+  limit_decel_rate: 2000
+  
+  # Monitoring
+  enable_monitoring: true
+  monitoring_rate: 50.0      # Hz - higher rate for industrial monitoring
+  enable_diagnostics: true
+  diagnostic_rate: 5.0       # Hz - more frequent diagnostics
+  enable_performance_monitoring: true  # important for industrial systems
+
+# Example 3: High-Performance AGV (Automated Guided Vehicle)
+# ===========================================================
+high_performance_agv:
+  # Hardware connection
+  port: "/dev/ttyUSB1"
+  baud: 115200
+  address: 128
+  
+  # Physical parameters
+  wheel_radius: 0.2          # meters - large wheels for speed
+  wheel_separation: 0.8      # meters - wide base for stability at speed
+  encoder_counts_per_rev: 4000  # very high resolution
+  gear_ratio: 3.0            # balanced gear ratio
+  
+  # Motion control
+  motion_strategy: "speed_accel"
+  default_acceleration: 3000  # encoder counts/sec² - high acceleration
+  buffer_depth: 16           # extensive buffering for complex trajectories
+  
+  # Servo parameters
+  encoder_type: "absolute"    # absolute encoders for AGV precision
+  auto_home_on_startup: false # absolute encoders don't need homing
+  position_limits_enabled: true
+  min_position_left: -100000
+  max_position_left: 100000
+  min_position_right: -100000
+  max_position_right: 100000
+  limit_violation_behavior: "hard_stop"  # immediate stop for safety
+  limit_decel_rate: 5000
+  
+  # Monitoring
+  enable_monitoring: true
+  monitoring_rate: 100.0     # Hz - very high rate for AGV safety
+  enable_diagnostics: true
+  diagnostic_rate: 10.0      # Hz - frequent diagnostics for reliability
+  enable_performance_monitoring: true
+
+# Example 4: Multi-Controller Setup (4-Wheel Drive)
+# =================================================
+multi_controller_4wd:
+  # Primary controller (front axle)
+  primary:
+    port: "/dev/ttyACM0"
+    baud: 38400
+    address: 128
+    
+    # Physical parameters
+    wheel_radius: 0.125
+    wheel_separation: 0.5    # front track width
+    encoder_counts_per_rev: 1500
+    gear_ratio: 2.0
+    
+    # Motion control
+    motion_strategy: "speed_accel"
+    default_acceleration: 1000
+    buffer_depth: 4
+    
+  # Secondary controller (rear axle)
+  secondary:
+    port: "/dev/ttyACM1"     # second controller
+    baud: 38400
+    address: 129             # different address
+    
+    # Physical parameters (same as front for 4WD)
+    wheel_radius: 0.125
+    wheel_separation: 0.5    # rear track width
+    encoder_counts_per_rev: 1500
+    gear_ratio: 2.0
+    
+    # Motion control (synchronized with front)
+    motion_strategy: "speed_accel"
+    default_acceleration: 1000
+    buffer_depth: 4
+  
+  # Common parameters
+  encoder_type: "incremental"
+  position_limits_enabled: false
+  enable_monitoring: true
+  monitoring_rate: 30.0
+  enable_diagnostics: true
+  diagnostic_rate: 2.0
+
+# Example 5: RoboClaw with Servo Functionality
+# ============================================
+roboclaw_servo:
+  # Hardware connection
+  port: "/dev/ttyACM0"
+  baud: 38400
+  address: 128
+  
+  # Physical parameters
+  wheel_radius: 0.1
+  wheel_separation: 0.3
+  encoder_counts_per_rev: 1000
+  gear_ratio: 1.0
+  
+  # Motion control - optimized for servo operation
+  motion_strategy: "speed_accel"  # good balance for servo applications
+  default_acceleration: 800      # conservative for servo accuracy
+  buffer_depth: 6               # medium buffering for servo sequences
+  
+  # Servo parameters - RoboClaw specific
+  encoder_type: "incremental"
+  auto_home_on_startup: true    # RoboClaw supports auto-homing
+  position_limits_enabled: true
+  min_position_left: -10000     # conservative position limits
+  max_position_left: 10000
+  min_position_right: -10000
+  max_position_right: 10000
+  limit_violation_behavior: "soft_stop"
+  limit_decel_rate: 1000
+  
+  # Monitoring - enhanced for servo applications
+  enable_monitoring: true
+  monitoring_rate: 30.0         # good for servo monitoring
+  enable_diagnostics: true
+  diagnostic_rate: 3.0          # frequent diagnostics for servo systems
+  enable_performance_monitoring: true  # important for servo accuracy
+
+# Example 6: MCP Advanced Controller
+# ==================================
+mcp_advanced:
+  # Hardware connection
+  port: "/dev/ttyUSB0"
+  baud: 115200               # MCP supports higher baud rates
+  address: 128
+  
+  # Physical parameters
+  wheel_radius: 0.15
+  wheel_separation: 0.4
+  encoder_counts_per_rev: 2048  # high resolution for MCP
+  gear_ratio: 5.0             # high gear ratio for precision
+  
+  # Motion control - leveraging MCP capabilities
+  motion_strategy: "speed_accel"
+  default_acceleration: 2000   # MCP can handle higher accelerations
+  buffer_depth: 32            # MCP supports full buffer depth
+  
+  # Servo parameters - MCP specific capabilities
+  encoder_type: "absolute"     # MCP supports absolute encoders
+  auto_home_on_startup: false  # absolute encoders don't need homing
+  position_limits_enabled: true
+  min_position_left: -200000   # wide range for absolute encoders
+  max_position_left: 200000
+  min_position_right: -200000
+  max_position_right: 200000
+  limit_violation_behavior: "soft_stop"
+  limit_decel_rate: 3000
+  
+  # Monitoring - enhanced for advanced controller
+  enable_monitoring: true
+  monitoring_rate: 50.0        # higher rate for advanced monitoring
+  enable_diagnostics: true
+  diagnostic_rate: 5.0         # frequent diagnostics
+  enable_performance_monitoring: true
+
+# Example 7: Minimal Configuration for Testing
+# ============================================
+minimal_test:
+  # Minimal required parameters for basic testing
+  port: "/dev/ttyACM0"
+  baud: 38400
+  address: 128
+  wheel_radius: 0.1
+  wheel_separation: 0.3
+  encoder_counts_per_rev: 1000
+  
+  # All other parameters will use defaults
+  # This is useful for initial testing and development
+
+# Parameter Selection Guidelines
+# ==============================
+# 1. Hardware Connection:
+#    - port: Match your actual serial device
+#    - baud: 38400 for basic, 115200 for high-performance
+#    - address: 128 (0x80) is default, use 129+ for multiple controllers
+#
+# 2. Physical Parameters:
+#    - wheel_radius: Measure your actual wheel radius
+#    - wheel_separation: Measure center-to-center distance between wheels
+#    - encoder_counts_per_rev: Check your encoder specifications
+#    - gear_ratio: Calculate from motor to wheel gear reduction
+#
+# 3. Motion Control:
+#    - motion_strategy: "speed_accel" for most applications
+#    - default_acceleration: Start conservative, increase as needed
+#    - buffer_depth: 2-4 for responsive, 8-32 for smooth complex motion
+#
+# 4. Servo Parameters:
+#    - encoder_type: "incremental" (most common) or "absolute"
+#    - auto_home_on_startup: true for RoboClaw, false for MCP
+#    - position_limits_enabled: true for safety-critical applications
+#
+# 5. Monitoring:
+#    - monitoring_rate: 10-25 Hz for basic, 50-100 Hz for critical systems
+#    - enable_performance_monitoring: true for optimization, false for simple robots

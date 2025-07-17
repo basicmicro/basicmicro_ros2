@@ -1,0 +1,14 @@
+# Request: Configure position limits for non-position commands
+bool enable_limits               # Enable or disable position limit checking
+float64 left_min_position        # Minimum position for left wheel (radians)
+float64 left_max_position        # Maximum position for left wheel (radians)
+float64 right_min_position       # Minimum position for right wheel (radians)
+float64 right_max_position       # Maximum position for right wheel (radians)
+string violation_behavior        # How to handle limit violations: 'hard_stop', 'soft_stop', 'warning'
+float64 decel_rate              # Deceleration rate for soft stops (m/s²)
+
+---
+
+# Response: Configuration result
+bool success        # True if limits were successfully configured
+string message      # Detailed result message or error description

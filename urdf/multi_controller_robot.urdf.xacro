@@ -1,0 +1,505 @@
+<?xml version="1.0"?>
+<!-- 
+Multi-Controller Robot URDF with Multiple Basicmicro Hardware Interfaces
+=========================================================================
+This URDF describes a 4WD/6WD robot with multiple Basicmicro controllers
+for independent control of wheel pairs. Suitable for heavy-duty applications
+requiring high traction and redundancy.
+
+Usage:
+  xacro multi_controller_robot.urdf.xacro > robot.urdf
+
+Robot Configuration Options:
+  - 4WD: front_controller + rear_controller (2 controllers, 4 wheels)
+  - 6WD: front_controller + middle_controller + rear_controller (3 controllers, 6 wheels)
+
+Key Features:
+  - Independent control of wheel pairs for optimal traction
+  - Redundant systems for improved reliability
+  - Configurable 4WD or 6WD operation
+  - High-torque wheel configuration
+  - Heavy-duty frame construction
+  - Advanced motion coordination between controllers
+
+Parameters (can be overridden via xacro arguments):
+  - drive_mode: 4WD or 6WD configuration (default: 4WD)
+  - front_port: Front controller serial port (default: /dev/ttyACM0)
+  - rear_port: Rear controller serial port (default: /dev/ttyACM1)
+  - middle_port: Middle controller serial port (default: /dev/ttyACM2, 6WD only)
+  - baud: Baud rate for all controllers (default: 115200)
+  - front_address: Front controller address (default: 128)
+  - rear_address: Rear controller address (default: 129)
+  - middle_address: Middle controller address (default: 130, 6WD only)
+  - wheel_radius: Wheel radius in meters (default: 0.15)
+  - wheel_separation_width: Width between left/right wheels (default: 0.5)
+  - wheel_separation_length: Length between front/rear wheels (default: 0.8)
+  - encoder_counts_per_rev: Encoder resolution (default: 1000)
+  - gear_ratio: Gear ratio (default: 15.0 for high torque)
+-->
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="basicmicro_multi_controller_robot">
+
+  <!-- Xacro arguments with multi-controller defaults -->
+  <xacro:arg name="drive_mode" default="4WD"/>
+  <xacro:arg name="front_port" default="/dev/ttyACM0"/>
+  <xacro:arg name="rear_port" default="/dev/ttyACM1"/>
+  <xacro:arg name="middle_port" default="/dev/ttyACM2"/>
+  <xacro:arg name="baud" default="115200"/>
+  <xacro:arg name="front_address" default="128"/>
+  <xacro:arg name="rear_address" default="129"/>
+  <xacro:arg name="middle_address" default="130"/>
+  <xacro:arg name="wheel_radius" default="0.15"/>
+  <xacro:arg name="wheel_separation_width" default="0.5"/>
+  <xacro:arg name="wheel_separation_length" default="0.8"/>
+  <xacro:arg name="encoder_counts_per_rev" default="1000"/>
+  <xacro:arg name="gear_ratio" default="15.0"/>
+  <xacro:arg name="motion_strategy" default="speed_accel"/>
+  <xacro:arg name="default_acceleration" default="1500"/>
+  <xacro:arg name="buffer_depth" default="6"/>
+  <xacro:arg name="max_speed" default="3.0"/>
+
+  <!-- Multi-Controller Robot Physical Properties -->
+  <xacro:property name="wheel_radius" value="$(arg wheel_radius)"/>
+  <xacro:property name="wheel_separation_width" value="$(arg wheel_separation_width)"/>
+  <xacro:property name="wheel_separation_length" value="$(arg wheel_separation_length)"/>
+  <xacro:property name="wheel_width" value="0.1"/>
+  <xacro:property name="wheel_mass" value="3.0"/>
+  <xacro:property name="drive_mode" value="$(arg drive_mode)"/>
+  
+  <!-- Heavy-duty base platform -->
+  <xacro:property name="base_length" value="1.0"/>
+  <xacro:property name="base_width" value="0.6"/>
+  <xacro:property name="base_height" value="0.15"/>
+  <xacro:property name="base_mass" value="80.0"/>
+
+  <!-- Multi-Controller Materials -->
+  <material name="multi_controller_blue">
+    <color rgba="0.0 0.5 1.0 1.0"/>
+  </material>
+  
+  <material name="multi_controller_black">
+    <color rgba="0.1 0.1 0.1 1.0"/>
+  </material>
+  
+  <material name="multi_controller_red">
+    <color rgba="0.8 0.0 0.0 1.0"/>
+  </material>
+  
+  <material name="multi_controller_green">
+    <color rgba="0.0 0.8 0.0 1.0"/>
+  </material>
+
+  <!-- Base Link (Heavy-duty multi-controller platform) -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="${base_length} ${base_width} ${base_height}"/>
+      </geometry>
+      <material name="multi_controller_blue"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${base_length} ${base_width} ${base_height}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${base_mass}"/>
+      <inertia ixx="${base_mass * (base_width*base_width + base_height*base_height) / 12}"
+               iyy="${base_mass * (base_length*base_length + base_height*base_height) / 12}"
+               izz="${base_mass * (base_length*base_length + base_width*base_width) / 12}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- Front Left Wheel -->
+  <link name="front_left_wheel">
+    <visual>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+      <material name="multi_controller_black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <inertia ixx="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+               iyy="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+               izz="${wheel_mass * wheel_radius*wheel_radius / 2}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- Front Right Wheel -->
+  <link name="front_right_wheel">
+    <visual>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+      <material name="multi_controller_black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <inertia ixx="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+               iyy="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+               izz="${wheel_mass * wheel_radius*wheel_radius / 2}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- Rear Left Wheel -->
+  <link name="rear_left_wheel">
+    <visual>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+      <material name="multi_controller_black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <inertia ixx="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+               iyy="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+               izz="${wheel_mass * wheel_radius*wheel_radius / 2}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- Rear Right Wheel -->
+  <link name="rear_right_wheel">
+    <visual>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+      <material name="multi_controller_black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <inertia ixx="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+               iyy="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+               izz="${wheel_mass * wheel_radius*wheel_radius / 2}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- Middle wheels (6WD only) -->
+  <xacro:if value="${drive_mode == '6WD'}">
+    <!-- Middle Left Wheel -->
+    <link name="middle_left_wheel">
+      <visual>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+        <material name="multi_controller_black"/>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="${wheel_mass}"/>
+        <inertia ixx="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+                 iyy="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+                 izz="${wheel_mass * wheel_radius*wheel_radius / 2}"
+                 ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+    </link>
+
+    <!-- Middle Right Wheel -->
+    <link name="middle_right_wheel">
+      <visual>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+        <material name="multi_controller_black"/>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="${wheel_mass}"/>
+        <inertia ixx="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+                 iyy="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+                 izz="${wheel_mass * wheel_radius*wheel_radius / 2}"
+                 ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+    </link>
+  </xacro:if>
+
+  <!-- Joint Definitions -->
+  <!-- Front Left Wheel Joint -->
+  <joint name="front_left_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="front_left_wheel"/>
+    <origin xyz="${wheel_separation_length/2} ${wheel_separation_width/2} 0" rpy="${-pi/2} 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- Front Right Wheel Joint -->
+  <joint name="front_right_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="front_right_wheel"/>
+    <origin xyz="${wheel_separation_length/2} ${-wheel_separation_width/2} 0" rpy="${-pi/2} 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- Rear Left Wheel Joint -->
+  <joint name="rear_left_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="rear_left_wheel"/>
+    <origin xyz="${-wheel_separation_length/2} ${wheel_separation_width/2} 0" rpy="${-pi/2} 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- Rear Right Wheel Joint -->
+  <joint name="rear_right_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="rear_right_wheel"/>
+    <origin xyz="${-wheel_separation_length/2} ${-wheel_separation_width/2} 0" rpy="${-pi/2} 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- Middle wheel joints (6WD only) -->
+  <xacro:if value="${drive_mode == '6WD'}">
+    <!-- Middle Left Wheel Joint -->
+    <joint name="middle_left_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="middle_left_wheel"/>
+      <origin xyz="0 ${wheel_separation_width/2} 0" rpy="${-pi/2} 0 0"/>
+      <axis xyz="0 0 1"/>
+    </joint>
+
+    <!-- Middle Right Wheel Joint -->
+    <joint name="middle_right_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="middle_right_wheel"/>
+      <origin xyz="0 ${-wheel_separation_width/2} 0" rpy="${-pi/2} 0 0"/>
+      <axis xyz="0 0 1"/>
+    </joint>
+  </xacro:if>
+
+  <!-- ros2_control Hardware Interface - Front Controller -->
+  <ros2_control name="FrontControllerSystem" type="system">
+    <hardware>
+      <plugin>basicmicro_driver/BasicmicroHardwareInterface</plugin>
+      
+      <!-- Front controller connection parameters -->
+      <param name="port">$(arg front_port)</param>
+      <param name="baud">$(arg baud)</param>
+      <param name="address">$(arg front_address)</param>
+      
+      <!-- Robot physical parameters -->
+      <param name="wheel_radius">$(arg wheel_radius)</param>
+      <param name="wheel_separation">$(arg wheel_separation_width)</param>
+      <param name="encoder_counts_per_rev">$(arg encoder_counts_per_rev)</param>
+      <param name="gear_ratio">$(arg gear_ratio)</param>
+      
+      <!-- Motion control parameters -->
+      <param name="motion_strategy">$(arg motion_strategy)</param>
+      <param name="buffer_depth">$(arg buffer_depth)</param>
+      <param name="default_acceleration">$(arg default_acceleration)</param>
+      <param name="max_speed">$(arg max_speed)</param>
+      
+      <!-- Controller identification -->
+      <param name="controller_name">front_controller</param>
+      <param name="controller_role">front</param>
+    </hardware>
+    
+    <!-- Front Left Wheel Interface -->
+    <joint name="front_left_wheel_joint">
+      <command_interface name="velocity">
+        <param name="min">-$(arg max_speed)</param>
+        <param name="max">$(arg max_speed)</param>
+      </command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    
+    <!-- Front Right Wheel Interface -->
+    <joint name="front_right_wheel_joint">
+      <command_interface name="velocity">
+        <param name="min">-$(arg max_speed)</param>
+        <param name="max">$(arg max_speed)</param>
+      </command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+  <!-- ros2_control Hardware Interface - Rear Controller -->
+  <ros2_control name="RearControllerSystem" type="system">
+    <hardware>
+      <plugin>basicmicro_driver/BasicmicroHardwareInterface</plugin>
+      
+      <!-- Rear controller connection parameters -->
+      <param name="port">$(arg rear_port)</param>
+      <param name="baud">$(arg baud)</param>
+      <param name="address">$(arg rear_address)</param>
+      
+      <!-- Robot physical parameters -->
+      <param name="wheel_radius">$(arg wheel_radius)</param>
+      <param name="wheel_separation">$(arg wheel_separation_width)</param>
+      <param name="encoder_counts_per_rev">$(arg encoder_counts_per_rev)</param>
+      <param name="gear_ratio">$(arg gear_ratio)</param>
+      
+      <!-- Motion control parameters -->
+      <param name="motion_strategy">$(arg motion_strategy)</param>
+      <param name="buffer_depth">$(arg buffer_depth)</param>
+      <param name="default_acceleration">$(arg default_acceleration)</param>
+      <param name="max_speed">$(arg max_speed)</param>
+      
+      <!-- Controller identification -->
+      <param name="controller_name">rear_controller</param>
+      <param name="controller_role">rear</param>
+    </hardware>
+    
+    <!-- Rear Left Wheel Interface -->
+    <joint name="rear_left_wheel_joint">
+      <command_interface name="velocity">
+        <param name="min">-$(arg max_speed)</param>
+        <param name="max">$(arg max_speed)</param>
+      </command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    
+    <!-- Rear Right Wheel Interface -->
+    <joint name="rear_right_wheel_joint">
+      <command_interface name="velocity">
+        <param name="min">-$(arg max_speed)</param>
+        <param name="max">$(arg max_speed)</param>
+      </command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+  <!-- ros2_control Hardware Interface - Middle Controller (6WD only) -->
+  <xacro:if value="${drive_mode == '6WD'}">
+    <ros2_control name="MiddleControllerSystem" type="system">
+      <hardware>
+        <plugin>basicmicro_driver/BasicmicroHardwareInterface</plugin>
+        
+        <!-- Middle controller connection parameters -->
+        <param name="port">$(arg middle_port)</param>
+        <param name="baud">$(arg baud)</param>
+        <param name="address">$(arg middle_address)</param>
+        
+        <!-- Robot physical parameters -->
+        <param name="wheel_radius">$(arg wheel_radius)</param>
+        <param name="wheel_separation">$(arg wheel_separation_width)</param>
+        <param name="encoder_counts_per_rev">$(arg encoder_counts_per_rev)</param>
+        <param name="gear_ratio">$(arg gear_ratio)</param>
+        
+        <!-- Motion control parameters -->
+        <param name="motion_strategy">$(arg motion_strategy)</param>
+        <param name="buffer_depth">$(arg buffer_depth)</param>
+        <param name="default_acceleration">$(arg default_acceleration)</param>
+        <param name="max_speed">$(arg max_speed)</param>
+        
+        <!-- Controller identification -->
+        <param name="controller_name">middle_controller</param>
+        <param name="controller_role">middle</param>
+      </hardware>
+      
+      <!-- Middle Left Wheel Interface -->
+      <joint name="middle_left_wheel_joint">
+        <command_interface name="velocity">
+          <param name="min">-$(arg max_speed)</param>
+          <param name="max">$(arg max_speed)</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+      
+      <!-- Middle Right Wheel Interface -->
+      <joint name="middle_right_wheel_joint">
+        <command_interface name="velocity">
+          <param name="min">-$(arg max_speed)</param>
+          <param name="max">$(arg max_speed)</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+    </ros2_control>
+  </xacro:if>
+
+  <!-- Gazebo Integration (Multi-Controller Configuration) -->
+  <gazebo>
+    <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+      <parameters>$(find basicmicro_driver)/config/multi_controller_controllers.yaml</parameters>
+    </plugin>
+  </gazebo>
+
+  <!-- Gazebo Multi-Controller Wheel Properties -->
+  <gazebo reference="front_left_wheel">
+    <material>Gazebo/Black</material>
+    <mu1>1.2</mu1>
+    <mu2>1.2</mu2>
+    <kp>1000000.0</kp>
+    <kd>1.0</kd>
+  </gazebo>
+  
+  <gazebo reference="front_right_wheel">
+    <material>Gazebo/Black</material>
+    <mu1>1.2</mu1>
+    <mu2>1.2</mu2>
+    <kp>1000000.0</kp>
+    <kd>1.0</kd>
+  </gazebo>
+  
+  <gazebo reference="rear_left_wheel">
+    <material>Gazebo/Black</material>
+    <mu1>1.2</mu1>
+    <mu2>1.2</mu2>
+    <kp>1000000.0</kp>
+    <kd>1.0</kd>
+  </gazebo>
+  
+  <gazebo reference="rear_right_wheel">
+    <material>Gazebo/Black</material>
+    <mu1>1.2</mu1>
+    <mu2>1.2</mu2>
+    <kp>1000000.0</kp>
+    <kd>1.0</kd>
+  </gazebo>
+
+  <xacro:if value="${drive_mode == '6WD'}">
+    <gazebo reference="middle_left_wheel">
+      <material>Gazebo/Black</material>
+      <mu1>1.2</mu1>
+      <mu2>1.2</mu2>
+      <kp>1000000.0</kp>
+      <kd>1.0</kd>
+    </gazebo>
+    
+    <gazebo reference="middle_right_wheel">
+      <material>Gazebo/Black</material>
+      <mu1>1.2</mu1>
+      <mu2>1.2</mu2>
+      <kp>1000000.0</kp>
+      <kd>1.0</kd>
+    </gazebo>
+  </xacro:if>
+
+</robot>

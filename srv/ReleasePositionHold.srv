@@ -1,0 +1,11 @@
+# ReleasePositionHold.srv
+# Service to release position hold mode
+
+# Request
+# No parameters - releases position hold via DutyM1M2(0,0)
+
+---
+
+# Response
+bool success        # True if position hold was released successfully
+string message      # Status message or error description

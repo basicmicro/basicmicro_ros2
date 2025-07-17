@@ -1,0 +1,13 @@
+# Request: Distance-based movement command
+float64 left_distance    # Distance to travel for left wheel (meters)
+float64 right_distance   # Distance to travel for right wheel (meters)
+float64 speed           # Target speed during movement (m/s)
+float64 acceleration    # Acceleration rate (m/s²)
+bool use_buffer         # Whether to buffer the command for chaining
+
+---
+
+# Response: Command execution result
+bool success            # True if command was accepted and executed
+string message          # Detailed result message or error description
+int32 buffer_slots_used # Number of buffer slots used after this command

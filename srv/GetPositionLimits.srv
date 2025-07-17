@@ -1,0 +1,13 @@
+# Request: Get current position limit configuration
+# (no parameters needed)
+
+---
+
+# Response: Current position limit configuration
+bool limits_enabled              # Whether position limits are currently enabled
+float64 left_min_position        # Current minimum position for left wheel (radians)
+float64 left_max_position        # Current maximum position for left wheel (radians)
+float64 right_min_position       # Current minimum position for right wheel (radians)
+float64 right_max_position       # Current maximum position for right wheel (radians)
+string violation_behavior        # Current violation handling: 'hard_stop', 'soft_stop', 'warning'
+float64 decel_rate              # Current deceleration rate for soft stops (m/s²)

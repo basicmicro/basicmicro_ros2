@@ -1,0 +1,13 @@
+# SetHomingConfiguration.srv
+# Service to configure homing parameters
+
+# Request
+bool auto_home_on_startup   # Whether to auto-home on startup (RoboClaw only)
+string default_homing_method # Default homing method ID
+float64 default_homing_speed # Default homing speed (m/s)
+
+---
+
+# Response
+bool success               # True if configuration was set successfully
+string message            # Status message or error description

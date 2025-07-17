@@ -1,0 +1,16 @@
+# GetAvailableHomingMethods.srv
+# Service to query available homing methods based on controller type and configuration
+
+# Request
+# No parameters
+
+---
+
+# Response
+bool success                    # True if query was successful
+string controller_type         # "roboclaw" or "mcp"
+string[] available_methods     # List of available homing method IDs
+string[] method_descriptions   # Human-readable descriptions for each method
+string[] allowed_directions    # Allowed directions for each method (forward/backward/both)
+bool[] auto_zeros_encoder     # Whether each method automatically zeros encoder
+bool[] acts_as_limit          # Whether each method also acts as limit switch

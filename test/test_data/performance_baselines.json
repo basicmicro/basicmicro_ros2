@@ -1,0 +1,114 @@
+{
+  "version": "1.0",
+  "timestamp": "2025-07-10T00:00:00Z",
+  "description": "Performance baseline measurements for regression testing",
+  "hardware_config": {
+    "test_environment": "mock",
+    "wheel_radius": 0.1,
+    "encoder_counts_per_rev": 1000,
+    "gear_ratio": 1.0
+  },
+  "baselines": {
+    "command_latency": {
+      "velocity_command_ms": {
+        "mean": 2.5,
+        "p95": 4.0,
+        "max": 6.0,
+        "target": 5.0
+      },
+      "sensor_reading_ms": {
+        "mean": 1.8,
+        "p95": 3.0,
+        "max": 4.5,
+        "target": 5.0
+      },
+      "emergency_stop_ms": {
+        "mean": 1.0,
+        "p95": 1.5,
+        "max": 2.0,
+        "target": 2.0
+      },
+      "unit_conversion_ms": {
+        "mean": 0.05,
+        "p95": 0.08,
+        "max": 0.1,
+        "target": 0.1
+      }
+    },
+    "throughput": {
+      "sensor_reading_hz": {
+        "mean": 150.0,
+        "min": 120.0,
+        "target": 100.0
+      },
+      "command_execution_hz": {
+        "mean": 200.0,
+        "min": 150.0,
+        "target": 100.0
+      },
+      "continuous_cycles_hz": {
+        "mean": 80.0,
+        "min": 60.0,
+        "target": 50.0
+      }
+    },
+    "bulk_operations": {
+      "distance_commands_ms": {
+        "32_commands": 25.0,
+        "target": 50.0
+      },
+      "sensor_readings_ms": {
+        "500_readings": 40.0,
+        "target": 100.0
+      },
+      "trajectory_processing_ms": {
+        "100_points": 80.0,
+        "target": 200.0
+      }
+    },
+    "memory_usage": {
+      "base_memory_mb": 15.0,
+      "peak_memory_mb": 25.0,
+      "memory_per_operation_kb": 2.5,
+      "target_peak_mb": 100.0
+    },
+    "cpu_utilization": {
+      "idle_percent": 2.0,
+      "continuous_operation_percent": 15.0,
+      "peak_percent": 35.0,
+      "target_max_percent": 50.0
+    }
+  },
+  "regression_thresholds": {
+    "latency_degradation_percent": 20.0,
+    "throughput_degradation_percent": 15.0,
+    "memory_increase_percent": 25.0,
+    "cpu_increase_percent": 30.0
+  },
+  "test_configurations": {
+    "unit_tests": {
+      "iterations": 100,
+      "timeout_seconds": 60
+    },
+    "integration_tests": {
+      "cycles": 50,
+      "timeout_seconds": 120
+    },
+    "performance_tests": {
+      "warmup_iterations": 10,
+      "measurement_iterations": 100,
+      "timeout_seconds": 300
+    },
+    "regression_tests": {
+      "comparison_tolerance": 0.05,
+      "timeout_seconds": 180
+    }
+  },
+  "hardware_targets": {
+    "communication_baud_rates": [38400, 115200, 230400],
+    "supported_controllers": ["RoboClaw", "MCP"],
+    "max_buffer_size": 32,
+    "serial_timeout_ms": 100,
+    "packet_overhead_ms": 2
+  }
+}

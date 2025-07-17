@@ -1,0 +1,11 @@
+# Execute a sequence of absolute position movements
+# Optimized for servo applications with position control
+
+# Position points to execute in sequence  
+basicmicro_driver/PositionPoint[] position_points
+
+---
+# Response
+bool success                # True if sequence was successfully queued
+string message             # Status message or error description
+int32 total_commands_sent   # Number of position commands successfully sent to buffer

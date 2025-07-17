@@ -1,0 +1,366 @@
+<?xml version="1.0"?>
+<!-- 
+Industrial Robot URDF with Basicmicro Hardware Interface
+=========================================================
+This URDF describes a heavy-duty industrial robot with large wheels,
+enhanced durability, and high-performance capabilities for warehouse
+and manufacturing environments.
+
+Usage:
+  xacro industrial_robot.urdf.xacro > robot.urdf
+
+Key Features:
+  - Large wheels (0.2m radius) for stability and speed
+  - Heavy-duty base platform (50kg) for payload capacity
+  - Enhanced inertial properties for industrial applications
+  - High-performance motion control parameters
+  - Robust mechanical design with extended wheelbase
+  - Support for heavy payload operations
+
+Parameters (can be overridden via xacro arguments):
+  - port: Serial port (default: /dev/ttyACM0)
+  - baud: Baud rate (default: 115200 for high-speed communication)
+  - address: Controller address (default: 128)
+  - wheel_radius: Wheel radius in meters (default: 0.2)
+  - wheel_separation: Distance between wheels (default: 0.6)
+  - encoder_counts_per_rev: Encoder resolution (default: 2000)
+  - gear_ratio: Gear ratio (default: 10.0 for high torque)
+  - motion_strategy: Motion control strategy (default: speed_accel)
+  - max_speed: Maximum wheel speed (default: 5.0 m/s)
+  - max_acceleration: Maximum acceleration (default: 2000)
+-->
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="basicmicro_industrial_robot">
+
+  <!-- Xacro arguments with industrial defaults -->
+  <xacro:arg name="port" default="/dev/ttyACM0"/>
+  <xacro:arg name="baud" default="115200"/>
+  <xacro:arg name="address" default="128"/>
+  <xacro:arg name="wheel_radius" default="0.2"/>
+  <xacro:arg name="wheel_separation" default="0.6"/>
+  <xacro:arg name="encoder_counts_per_rev" default="2000"/>
+  <xacro:arg name="gear_ratio" default="10.0"/>
+  <xacro:arg name="motion_strategy" default="speed_accel"/>
+  <xacro:arg name="default_acceleration" default="2000"/>
+  <xacro:arg name="buffer_depth" default="8"/>
+  <xacro:arg name="encoder_type" default="incremental"/>
+  <xacro:arg name="auto_home_on_startup" default="false"/>
+  <xacro:arg name="position_limits_enabled" default="true"/>
+  <xacro:arg name="max_speed" default="5.0"/>
+  <xacro:arg name="max_acceleration" default="2000"/>
+
+  <!-- Industrial Robot Physical Properties -->
+  <xacro:property name="wheel_radius" value="$(arg wheel_radius)"/>
+  <xacro:property name="wheel_separation" value="$(arg wheel_separation)"/>
+  <xacro:property name="wheel_width" value="0.15"/>
+  <xacro:property name="wheel_mass" value="5.0"/>
+  
+  <!-- Large industrial base platform -->
+  <xacro:property name="base_length" value="0.8"/>
+  <xacro:property name="base_width" value="0.6"/>
+  <xacro:property name="base_height" value="0.2"/>
+  <xacro:property name="base_mass" value="50.0"/>
+  
+  <!-- Heavy-duty caster wheels (2 for stability) -->
+  <xacro:property name="caster_radius" value="0.08"/>
+  <xacro:property name="caster_mass" value="2.0"/>
+  
+  <!-- Payload platform -->
+  <xacro:property name="payload_length" value="0.6"/>
+  <xacro:property name="payload_width" value="0.4"/>
+  <xacro:property name="payload_height" value="0.05"/>
+  <xacro:property name="payload_mass" value="5.0"/>
+
+  <!-- Industrial Materials -->
+  <material name="industrial_blue">
+    <color rgba="0.0 0.3 0.7 1.0"/>
+  </material>
+  
+  <material name="industrial_black">
+    <color rgba="0.1 0.1 0.1 1.0"/>
+  </material>
+  
+  <material name="industrial_gray">
+    <color rgba="0.4 0.4 0.4 1.0"/>
+  </material>
+  
+  <material name="industrial_yellow">
+    <color rgba="1.0 1.0 0.0 1.0"/>
+  </material>
+
+  <!-- Base Link (Heavy-duty platform) -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="${base_length} ${base_width} ${base_height}"/>
+      </geometry>
+      <material name="industrial_blue"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${base_length} ${base_width} ${base_height}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${base_mass}"/>
+      <inertia ixx="${base_mass * (base_width*base_width + base_height*base_height) / 12}"
+               iyy="${base_mass * (base_length*base_length + base_height*base_height) / 12}"
+               izz="${base_mass * (base_length*base_length + base_width*base_width) / 12}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- Payload Platform -->
+  <link name="payload_platform">
+    <visual>
+      <geometry>
+        <box size="${payload_length} ${payload_width} ${payload_height}"/>
+      </geometry>
+      <material name="industrial_yellow"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${payload_length} ${payload_width} ${payload_height}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${payload_mass}"/>
+      <inertia ixx="${payload_mass * (payload_width*payload_width + payload_height*payload_height) / 12}"
+               iyy="${payload_mass * (payload_length*payload_length + payload_height*payload_height) / 12}"
+               izz="${payload_mass * (payload_length*payload_length + payload_width*payload_width) / 12}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- Left Wheel (Large industrial wheel) -->
+  <link name="left_wheel">
+    <visual>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+      <material name="industrial_black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <inertia ixx="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+               iyy="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+               izz="${wheel_mass * wheel_radius*wheel_radius / 2}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- Right Wheel (Large industrial wheel) -->
+  <link name="right_wheel">
+    <visual>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+      <material name="industrial_black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <inertia ixx="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+               iyy="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+               izz="${wheel_mass * wheel_radius*wheel_radius / 2}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- Front Caster Wheel -->
+  <link name="front_caster_wheel">
+    <visual>
+      <geometry>
+        <sphere radius="${caster_radius}"/>
+      </geometry>
+      <material name="industrial_gray"/>
+    </visual>
+    <collision>
+      <geometry>
+        <sphere radius="${caster_radius}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${caster_mass}"/>
+      <inertia ixx="${2 * caster_mass * caster_radius*caster_radius / 5}"
+               iyy="${2 * caster_mass * caster_radius*caster_radius / 5}"
+               izz="${2 * caster_mass * caster_radius*caster_radius / 5}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- Rear Caster Wheel -->
+  <link name="rear_caster_wheel">
+    <visual>
+      <geometry>
+        <sphere radius="${caster_radius}"/>
+      </geometry>
+      <material name="industrial_gray"/>
+    </visual>
+    <collision>
+      <geometry>
+        <sphere radius="${caster_radius}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${caster_mass}"/>
+      <inertia ixx="${2 * caster_mass * caster_radius*caster_radius / 5}"
+               iyy="${2 * caster_mass * caster_radius*caster_radius / 5}"
+               izz="${2 * caster_mass * caster_radius*caster_radius / 5}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- Payload Platform Joint -->
+  <joint name="payload_platform_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="payload_platform"/>
+    <origin xyz="0 0 ${base_height/2 + payload_height/2}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Left Wheel Joint -->
+  <joint name="left_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="left_wheel"/>
+    <origin xyz="0 ${wheel_separation/2} 0" rpy="${-pi/2} 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- Right Wheel Joint -->
+  <joint name="right_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="right_wheel"/>
+    <origin xyz="0 ${-wheel_separation/2} 0" rpy="${-pi/2} 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- Front Caster Wheel Joint -->
+  <joint name="front_caster_wheel_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="front_caster_wheel"/>
+    <origin xyz="${base_length/2 - caster_radius} 0 ${-base_height/2 - caster_radius}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Rear Caster Wheel Joint -->
+  <joint name="rear_caster_wheel_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="rear_caster_wheel"/>
+    <origin xyz="${-base_length/2 + caster_radius} 0 ${-base_height/2 - caster_radius}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ros2_control Hardware Interface (Industrial Configuration) -->
+  <ros2_control name="BasicmicroIndustrialSystem" type="system">
+    <hardware>
+      <plugin>basicmicro_driver/BasicmicroHardwareInterface</plugin>
+      
+      <!-- Hardware connection parameters -->
+      <param name="port">$(arg port)</param>
+      <param name="baud">$(arg baud)</param>
+      <param name="address">$(arg address)</param>
+      
+      <!-- Robot physical parameters -->
+      <param name="wheel_radius">$(arg wheel_radius)</param>
+      <param name="wheel_separation">$(arg wheel_separation)</param>
+      <param name="encoder_counts_per_rev">$(arg encoder_counts_per_rev)</param>
+      <param name="gear_ratio">$(arg gear_ratio)</param>
+      
+      <!-- Motion control parameters (industrial settings) -->
+      <param name="motion_strategy">$(arg motion_strategy)</param>
+      <param name="buffer_depth">$(arg buffer_depth)</param>
+      <param name="default_acceleration">$(arg default_acceleration)</param>
+      <param name="max_speed">$(arg max_speed)</param>
+      <param name="max_acceleration">$(arg max_acceleration)</param>
+      
+      <!-- Industrial safety parameters -->
+      <param name="encoder_type">$(arg encoder_type)</param>
+      <param name="auto_home_on_startup">$(arg auto_home_on_startup)</param>
+      <param name="position_limits_enabled">$(arg position_limits_enabled)</param>
+      <param name="min_position_left">-5000000</param>
+      <param name="max_position_left">5000000</param>
+      <param name="min_position_right">-5000000</param>
+      <param name="max_position_right">5000000</param>
+      <param name="limit_violation_behavior">soft_stop</param>
+      <param name="limit_decel_rate">2000</param>
+      
+      <!-- Industrial monitoring parameters -->
+      <param name="current_monitoring_enabled">true</param>
+      <param name="temperature_monitoring_enabled">true</param>
+      <param name="voltage_monitoring_enabled">true</param>
+      <param name="max_current_threshold">20.0</param>
+      <param name="max_temperature_threshold">80.0</param>
+      <param name="min_voltage_threshold">22.0</param>
+    </hardware>
+    
+    <!-- Left Wheel Interface (Industrial velocity limits) -->
+    <joint name="left_wheel_joint">
+      <command_interface name="velocity">
+        <param name="min">-$(arg max_speed)</param>
+        <param name="max">$(arg max_speed)</param>
+      </command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    
+    <!-- Right Wheel Interface (Industrial velocity limits) -->
+    <joint name="right_wheel_joint">
+      <command_interface name="velocity">
+        <param name="min">-$(arg max_speed)</param>
+        <param name="max">$(arg max_speed)</param>
+      </command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+  <!-- Gazebo Integration (Industrial Configuration) -->
+  <gazebo>
+    <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+      <parameters>$(find basicmicro_driver)/config/industrial_controllers.yaml</parameters>
+    </plugin>
+  </gazebo>
+
+  <!-- Gazebo Industrial Wheel Properties -->
+  <gazebo reference="left_wheel">
+    <material>Gazebo/Black</material>
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <kp>1000000.0</kp>
+    <kd>1.0</kd>
+    <fdir1>1 0 0</fdir1>
+  </gazebo>
+  
+  <gazebo reference="right_wheel">
+    <material>Gazebo/Black</material>
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <kp>1000000.0</kp>
+    <kd>1.0</kd>
+    <fdir1>1 0 0</fdir1>
+  </gazebo>
+  
+  <gazebo reference="front_caster_wheel">
+    <material>Gazebo/Grey</material>
+    <mu1>0.1</mu1>
+    <mu2>0.1</mu2>
+  </gazebo>
+  
+  <gazebo reference="rear_caster_wheel">
+    <material>Gazebo/Grey</material>
+    <mu1>0.1</mu1>
+    <mu2>0.1</mu2>
+  </gazebo>
+  
+  <gazebo reference="payload_platform">
+    <material>Gazebo/Yellow</material>
+  </gazebo>
+
+</robot>

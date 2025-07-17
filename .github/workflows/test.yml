@@ -1,0 +1,347 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  test-unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, '3.10', '3.11']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov pytest-xdist pytest-mock
+        pip install -e .
+    
+    - name: Run unit tests
+      run: |
+        cd basicmicro_driver
+        python -m pytest test/unit/ -v --cov=basicmicro_driver --cov-report=xml --cov-report=term
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./basicmicro_driver/coverage.xml
+        flags: unit-tests
+        name: codecov-unit-${{ matrix.python-version }}
+
+  test-integration:
+    name: Integration Tests (Mock)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9, '3.11']  # Reduced matrix for integration tests
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov pytest-xdist pytest-mock
+        pip install -e .
+    
+    - name: Run integration tests (without ROS2)
+      run: |
+        cd basicmicro_driver
+        python -m pytest test/integration/ -v --cov=basicmicro_driver --cov-report=xml --cov-report=term -k "not ros2"
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./basicmicro_driver/coverage.xml
+        flags: integration-tests
+        name: codecov-integration-${{ matrix.python-version }}
+
+  test-performance:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-benchmark psutil
+        pip install -e .
+    
+    - name: Run performance tests
+      run: |
+        cd basicmicro_driver
+        python -m pytest test/performance/ -v --benchmark-json=benchmark_results.json
+    
+    - name: Store benchmark results
+      uses: benchmark-action/github-action-benchmark@v1
+      with:
+        tool: 'pytest'
+        output-file-path: basicmicro_driver/benchmark_results.json
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        auto-push: true
+        comment-on-alert: true
+        alert-threshold: '150%'  # Alert if performance degrades by 50%
+
+  test-regression:
+    name: Regression Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov
+        pip install -e .
+    
+    - name: Run regression tests
+      run: |
+        cd basicmicro_driver
+        python -m pytest test/regression/ -v --cov=basicmicro_driver --cov-report=xml
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./basicmicro_driver/coverage.xml
+        flags: regression-tests
+        name: codecov-regression
+
+  test-package-structure:
+    name: Package Structure Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+        pip install -e .
+    
+    - name: Run package structure tests
+      run: |
+        cd basicmicro_driver
+        python -m pytest test/test_package_structure.py test/test_unit_converter.py test/test_buffer_manager.py test/test_urdf_examples.py test/test_launch_files.py -v
+
+  test-ros2-integration:
+    name: ROS2 Integration Tests
+    runs-on: ubuntu-latest
+    container:
+      image: ros:humble-ros-base
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Python dependencies
+      run: |
+        apt-get update
+        apt-get install -y python3-pip
+        python3 -m pip install --upgrade pip
+        pip3 install pytest pytest-cov
+    
+    - name: Install ROS2 dependencies
+      run: |
+        apt-get install -y ros-humble-rclpy ros-humble-std-msgs ros-humble-geometry-msgs ros-humble-sensor-msgs ros-humble-nav-msgs ros-humble-diagnostic-msgs
+    
+    - name: Source ROS2 setup
+      run: |
+        source /opt/ros/humble/setup.bash
+        echo "ROS_DISTRO=$ROS_DISTRO" >> $GITHUB_ENV
+    
+    - name: Install package
+      run: |
+        source /opt/ros/humble/setup.bash
+        cd basicmicro_driver
+        pip3 install -e .
+    
+    - name: Run ROS2 integration tests
+      run: |
+        source /opt/ros/humble/setup.bash
+        cd basicmicro_driver
+        python3 -m pytest test/integration/ -v -m ros2 --cov=basicmicro_driver --cov-report=xml
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./basicmicro_driver/coverage.xml
+        flags: ros2-integration
+        name: codecov-ros2-integration
+
+  test-code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort mypy
+        pip install -e .
+    
+    - name: Check code formatting with Black
+      run: |
+        cd basicmicro_driver
+        black --check --diff .
+    
+    - name: Check import sorting with isort
+      run: |
+        cd basicmicro_driver
+        isort --check-only --diff .
+    
+    - name: Lint with flake8
+      run: |
+        cd basicmicro_driver
+        flake8 basicmicro_driver test --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 basicmicro_driver test --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+    
+    - name: Type checking with mypy
+      run: |
+        cd basicmicro_driver
+        mypy basicmicro_driver --ignore-missing-imports
+
+  test-comprehensive:
+    name: Comprehensive Test Suite
+    runs-on: ubuntu-latest
+    needs: [test-unit, test-integration, test-performance, test-regression, test-package-structure]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov pytest-benchmark psutil
+        pip install -e .
+    
+    - name: Run comprehensive test suite
+      run: |
+        cd basicmicro_driver
+        python test/test_runner.py --unit --integration --performance --regression --coverage --output-dir comprehensive_results
+    
+    - name: Upload comprehensive test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: comprehensive-test-results
+        path: basicmicro_driver/comprehensive_results/
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./basicmicro_driver/comprehensive_results/coverage.xml
+        flags: comprehensive
+        name: codecov-comprehensive
+
+  test-multiple-platforms:
+    name: Cross-Platform Tests
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.9', '3.11']
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+        pip install -e .
+    
+    - name: Run cross-platform tests
+      run: |
+        cd basicmicro_driver
+        python -m pytest test/unit/ test/test_package_structure.py test/test_unit_converter.py -v
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install security tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install bandit safety
+        pip install -e .
+    
+    - name: Run Bandit security scan
+      run: |
+        cd basicmicro_driver
+        bandit -r basicmicro_driver -f json -o bandit_report.json
+    
+    - name: Run Safety dependency scan
+      run: |
+        cd basicmicro_driver
+        safety check --json --output safety_report.json
+    
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          basicmicro_driver/bandit_report.json
+          basicmicro_driver/safety_report.json

@@ -1,0 +1,16 @@
+# GetServoStatus.srv
+# Service to get current servo status and error information
+
+# Request
+# No parameters
+
+---
+
+# Response
+bool success                    # True if status was read successfully
+int32 left_position_error      # Current position error for left motor (encoder counts)
+int32 right_position_error     # Current position error for right motor (encoder counts)
+int32 left_speed_error         # Current speed error for left motor (counts/sec)
+int32 right_speed_error        # Current speed error for right motor (counts/sec)
+bool error_limits_exceeded     # Whether controller is in error state (requires POR)
+string message                 # Status message or error description

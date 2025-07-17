@@ -1,0 +1,605 @@
+<?xml version="1.0"?>
+<!-- 
+Custom Robot URDF Template with Basicmicro Hardware Interface
+=============================================================
+This is a comprehensive template for creating custom robots with the Basicmicro
+hardware interface. This template includes all possible configuration options
+and extensive documentation for customization.
+
+USAGE INSTRUCTIONS:
+==================
+1. Copy this file to your robot package
+2. Rename it to match your robot (e.g., my_robot.urdf.xacro)
+3. Modify the physical parameters to match your robot
+4. Adjust the ros2_control configuration for your needs
+5. Test with: xacro my_robot.urdf.xacro > my_robot.urdf
+
+CUSTOMIZATION GUIDE:
+===================
+This template is designed to be easily customizable for different robot configurations:
+
+STEP 1: Physical Robot Parameters
+- Modify wheel dimensions (radius, width, mass)
+- Adjust base platform dimensions (length, width, height, mass)
+- Set wheel separation distances
+- Configure caster wheel properties (if applicable)
+
+STEP 2: Hardware Interface Configuration
+- Set serial port and communication parameters
+- Configure encoder specifications
+- Set motion control parameters
+- Enable/disable optional features (servo, limits, monitoring)
+
+STEP 3: Visual and Collision Properties
+- Modify geometry shapes and sizes
+- Adjust material colors and properties
+- Set collision boundaries
+- Configure inertial properties
+
+STEP 4: Advanced Features
+- Enable servo position control
+- Configure position limits and safety
+- Add monitoring and diagnostics
+- Set up Gazebo simulation properties
+
+PARAMETER REFERENCE:
+===================
+All parameters are documented below with their purpose and typical values.
+Modify the default values to match your specific robot configuration.
+
+Arguments (can be overridden via xacro arguments):
+Hardware Connection:
+  - port: Serial port (default: /dev/ttyACM0)
+  - baud: Baud rate (default: 38400)
+  - address: Controller address (default: 128)
+
+Physical Robot Parameters:
+  - wheel_radius: Wheel radius in meters (default: 0.1)
+  - wheel_separation: Distance between wheels (default: 0.3)
+  - encoder_counts_per_rev: Encoder resolution (default: 1000)
+  - gear_ratio: Gear ratio (default: 1.0)
+
+Motion Control Parameters:
+  - motion_strategy: Motion control strategy (default: speed_accel)
+  - default_acceleration: Default acceleration (default: 1000)
+  - buffer_depth: Command buffer depth (default: 4)
+  - max_speed: Maximum wheel speed (default: 10.0)
+
+Servo and Safety Parameters:
+  - encoder_type: Encoder type (default: incremental)
+  - position_limits_enabled: Enable position limits (default: false)
+  - auto_home_on_startup: Auto-home on startup (default: false)
+  - limit_violation_behavior: Limit violation behavior (default: soft_stop)
+
+Monitoring Parameters:
+  - current_monitoring_enabled: Enable current monitoring (default: false)
+  - temperature_monitoring_enabled: Enable temperature monitoring (default: false)
+  - voltage_monitoring_enabled: Enable voltage monitoring (default: false)
+
+Visual and Simulation:
+  - base_color: Base platform color (default: blue)
+  - wheel_color: Wheel color (default: black)
+  - enable_gazebo: Enable Gazebo simulation (default: true)
+-->
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="custom_basicmicro_robot">
+
+  <!-- ================================================================ -->
+  <!-- XACRO ARGUMENTS - MODIFY THESE FOR YOUR ROBOT                   -->
+  <!-- ================================================================ -->
+  
+  <!-- Hardware Connection Parameters -->
+  <xacro:arg name="port" default="/dev/ttyACM0"/>
+  <xacro:arg name="baud" default="38400"/>
+  <xacro:arg name="address" default="128"/>
+
+  <!-- Physical Robot Parameters -->
+  <xacro:arg name="wheel_radius" default="0.1"/>
+  <xacro:arg name="wheel_separation" default="0.3"/>
+  <xacro:arg name="encoder_counts_per_rev" default="1000"/>
+  <xacro:arg name="gear_ratio" default="1.0"/>
+
+  <!-- Base Platform Dimensions -->
+  <xacro:arg name="base_length" default="0.4"/>
+  <xacro:arg name="base_width" default="0.3"/>
+  <xacro:arg name="base_height" default="0.1"/>
+  <xacro:arg name="base_mass" default="10.0"/>
+
+  <!-- Wheel Properties -->
+  <xacro:arg name="wheel_width" default="0.05"/>
+  <xacro:arg name="wheel_mass" default="0.5"/>
+
+  <!-- Caster Wheel Properties (set caster_enabled=false to disable) -->
+  <xacro:arg name="caster_enabled" default="true"/>
+  <xacro:arg name="caster_radius" default="0.05"/>
+  <xacro:arg name="caster_mass" default="0.2"/>
+
+  <!-- Motion Control Parameters -->
+  <xacro:arg name="motion_strategy" default="speed_accel"/>
+  <xacro:arg name="default_acceleration" default="1000"/>
+  <xacro:arg name="buffer_depth" default="4"/>
+  <xacro:arg name="max_speed" default="10.0"/>
+
+  <!-- Servo and Safety Parameters -->
+  <xacro:arg name="encoder_type" default="incremental"/>
+  <xacro:arg name="position_limits_enabled" default="false"/>
+  <xacro:arg name="auto_home_on_startup" default="false"/>
+  <xacro:arg name="min_position_left" default="-1000000"/>
+  <xacro:arg name="max_position_left" default="1000000"/>
+  <xacro:arg name="min_position_right" default="-1000000"/>
+  <xacro:arg name="max_position_right" default="1000000"/>
+  <xacro:arg name="limit_violation_behavior" default="soft_stop"/>
+  <xacro:arg name="limit_decel_rate" default="1000"/>
+
+  <!-- Monitoring Parameters -->
+  <xacro:arg name="current_monitoring_enabled" default="false"/>
+  <xacro:arg name="temperature_monitoring_enabled" default="false"/>
+  <xacro:arg name="voltage_monitoring_enabled" default="false"/>
+  <xacro:arg name="max_current_threshold" default="10.0"/>
+  <xacro:arg name="max_temperature_threshold" default="70.0"/>
+  <xacro:arg name="min_voltage_threshold" default="11.0"/>
+
+  <!-- Visual and Simulation Parameters -->
+  <xacro:arg name="base_color" default="blue"/>
+  <xacro:arg name="wheel_color" default="black"/>
+  <xacro:arg name="caster_color" default="gray"/>
+  <xacro:arg name="enable_gazebo" default="true"/>
+
+  <!-- ================================================================ -->
+  <!-- XACRO PROPERTIES - COMPUTED FROM ARGUMENTS                      -->
+  <!-- ================================================================ -->
+  
+  <!-- Convert arguments to properties for use in calculations -->
+  <xacro:property name="wheel_radius" value="$(arg wheel_radius)"/>
+  <xacro:property name="wheel_separation" value="$(arg wheel_separation)"/>
+  <xacro:property name="wheel_width" value="$(arg wheel_width)"/>
+  <xacro:property name="wheel_mass" value="$(arg wheel_mass)"/>
+  
+  <xacro:property name="base_length" value="$(arg base_length)"/>
+  <xacro:property name="base_width" value="$(arg base_width)"/>
+  <xacro:property name="base_height" value="$(arg base_height)"/>
+  <xacro:property name="base_mass" value="$(arg base_mass)"/>
+  
+  <xacro:property name="caster_enabled" value="$(arg caster_enabled)"/>
+  <xacro:property name="caster_radius" value="$(arg caster_radius)"/>
+  <xacro:property name="caster_mass" value="$(arg caster_mass)"/>
+
+  <!-- ================================================================ -->
+  <!-- MATERIALS - CUSTOMIZE ROBOT APPEARANCE                          -->
+  <!-- ================================================================ -->
+  
+  <!-- Base platform material -->
+  <xacro:if value="${'$(arg base_color)' == 'blue'}">
+    <material name="base_material">
+      <color rgba="0.0 0.0 1.0 1.0"/>
+    </material>
+  </xacro:if>
+  <xacro:if value="${'$(arg base_color)' == 'red'}">
+    <material name="base_material">
+      <color rgba="1.0 0.0 0.0 1.0"/>
+    </material>
+  </xacro:if>
+  <xacro:if value="${'$(arg base_color)' == 'green'}">
+    <material name="base_material">
+      <color rgba="0.0 1.0 0.0 1.0"/>
+    </material>
+  </xacro:if>
+  <xacro:if value="${'$(arg base_color)' == 'yellow'}">
+    <material name="base_material">
+      <color rgba="1.0 1.0 0.0 1.0"/>
+    </material>
+  </xacro:if>
+  
+  <!-- Wheel material -->
+  <xacro:if value="${'$(arg wheel_color)' == 'black'}">
+    <material name="wheel_material">
+      <color rgba="0.0 0.0 0.0 1.0"/>
+    </material>
+  </xacro:if>
+  <xacro:if value="${'$(arg wheel_color)' == 'gray'}">
+    <material name="wheel_material">
+      <color rgba="0.5 0.5 0.5 1.0"/>
+    </material>
+  </xacro:if>
+  
+  <!-- Caster material -->
+  <material name="caster_material">
+    <color rgba="0.5 0.5 0.5 1.0"/>
+  </material>
+
+  <!-- ================================================================ -->
+  <!-- ROBOT LINKS - MODIFY GEOMETRY FOR YOUR ROBOT                    -->
+  <!-- ================================================================ -->
+
+  <!-- Base Link (Main robot platform) -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <!-- CUSTOMIZATION: Change geometry type or dimensions -->
+        <box size="${base_length} ${base_width} ${base_height}"/>
+        <!-- Alternative geometries:
+        <cylinder radius="${base_width/2}" length="${base_height}"/>
+        <sphere radius="${base_width/2}"/>
+        <mesh filename="package://your_package/meshes/base_link.stl"/>
+        -->
+      </geometry>
+      <material name="base_material"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${base_length} ${base_width} ${base_height}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${base_mass}"/>
+      <!-- CUSTOMIZATION: Adjust inertial properties for your geometry -->
+      <inertia ixx="${base_mass * (base_width*base_width + base_height*base_height) / 12}"
+               iyy="${base_mass * (base_length*base_length + base_height*base_height) / 12}"
+               izz="${base_mass * (base_length*base_length + base_width*base_width) / 12}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- Left Wheel -->
+  <link name="left_wheel">
+    <visual>
+      <geometry>
+        <!-- CUSTOMIZATION: Modify wheel geometry -->
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        <!-- Alternative: Use mesh for custom wheel design
+        <mesh filename="package://your_package/meshes/wheel.stl"/>
+        -->
+      </geometry>
+      <material name="wheel_material"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <!-- Cylinder inertia for wheels -->
+      <inertia ixx="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+               iyy="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+               izz="${wheel_mass * wheel_radius*wheel_radius / 2}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- Right Wheel -->
+  <link name="right_wheel">
+    <visual>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+      <material name="wheel_material"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <inertia ixx="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+               iyy="${wheel_mass * (3*wheel_radius*wheel_radius + wheel_width*wheel_width) / 12}"
+               izz="${wheel_mass * wheel_radius*wheel_radius / 2}"
+               ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <!-- Caster Wheel (optional) -->
+  <xacro:if value="${caster_enabled}">
+    <link name="caster_wheel">
+      <visual>
+        <geometry>
+          <!-- CUSTOMIZATION: Modify caster geometry -->
+          <sphere radius="${caster_radius}"/>
+          <!-- Alternative caster geometries:
+          <cylinder radius="${caster_radius}" length="${caster_radius}"/>
+          <mesh filename="package://your_package/meshes/caster.stl"/>
+          -->
+        </geometry>
+        <material name="caster_material"/>
+      </visual>
+      <collision>
+        <geometry>
+          <sphere radius="${caster_radius}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="${caster_mass}"/>
+        <!-- Sphere inertia for caster -->
+        <inertia ixx="${2 * caster_mass * caster_radius*caster_radius / 5}"
+                 iyy="${2 * caster_mass * caster_radius*caster_radius / 5}"
+                 izz="${2 * caster_mass * caster_radius*caster_radius / 5}"
+                 ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+    </link>
+  </xacro:if>
+
+  <!-- ================================================================ -->
+  <!-- ROBOT JOINTS - MODIFY POSITIONS FOR YOUR ROBOT                  -->
+  <!-- ================================================================ -->
+
+  <!-- Left Wheel Joint -->
+  <joint name="left_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="left_wheel"/>
+    <!-- CUSTOMIZATION: Adjust wheel position -->
+    <origin xyz="0 ${wheel_separation/2} 0" rpy="${-pi/2} 0 0"/>
+    <axis xyz="0 0 1"/>
+    <!-- CUSTOMIZATION: Add joint limits if needed -->
+    <!-- <limit effort="10" velocity="10"/> -->
+  </joint>
+
+  <!-- Right Wheel Joint -->
+  <joint name="right_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="right_wheel"/>
+    <!-- CUSTOMIZATION: Adjust wheel position -->
+    <origin xyz="0 ${-wheel_separation/2} 0" rpy="${-pi/2} 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- Caster Wheel Joint (optional) -->
+  <xacro:if value="${caster_enabled}">
+    <joint name="caster_wheel_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="caster_wheel"/>
+      <!-- CUSTOMIZATION: Adjust caster position -->
+      <origin xyz="${base_length/2 - caster_radius} 0 ${-base_height/2 - caster_radius}" rpy="0 0 0"/>
+      <!-- Alternative positions:
+      Front: xyz="${base_length/2 - caster_radius} 0 ${-base_height/2 - caster_radius}"
+      Rear: xyz="${-base_length/2 + caster_radius} 0 ${-base_height/2 - caster_radius}"
+      Center: xyz="0 0 ${-base_height/2 - caster_radius}"
+      -->
+    </joint>
+  </xacro:if>
+
+  <!-- ================================================================ -->
+  <!-- ROS2_CONTROL HARDWARE INTERFACE - CUSTOMIZE FOR YOUR NEEDS      -->
+  <!-- ================================================================ -->
+
+  <ros2_control name="CustomBasicmicroSystem" type="system">
+    <hardware>
+      <plugin>basicmicro_driver/BasicmicroHardwareInterface</plugin>
+      
+      <!-- Hardware connection parameters -->
+      <param name="port">$(arg port)</param>
+      <param name="baud">$(arg baud)</param>
+      <param name="address">$(arg address)</param>
+      
+      <!-- Robot physical parameters -->
+      <param name="wheel_radius">$(arg wheel_radius)</param>
+      <param name="wheel_separation">$(arg wheel_separation)</param>
+      <param name="encoder_counts_per_rev">$(arg encoder_counts_per_rev)</param>
+      <param name="gear_ratio">$(arg gear_ratio)</param>
+      
+      <!-- Motion control parameters -->
+      <param name="motion_strategy">$(arg motion_strategy)</param>
+      <param name="buffer_depth">$(arg buffer_depth)</param>
+      <param name="default_acceleration">$(arg default_acceleration)</param>
+      <param name="max_speed">$(arg max_speed)</param>
+      
+      <!-- Servo functionality parameters -->
+      <param name="encoder_type">$(arg encoder_type)</param>
+      <param name="auto_home_on_startup">$(arg auto_home_on_startup)</param>
+      <param name="position_limits_enabled">$(arg position_limits_enabled)</param>
+      <param name="min_position_left">$(arg min_position_left)</param>
+      <param name="max_position_left">$(arg max_position_left)</param>
+      <param name="min_position_right">$(arg min_position_right)</param>
+      <param name="max_position_right">$(arg max_position_right)</param>
+      <param name="limit_violation_behavior">$(arg limit_violation_behavior)</param>
+      <param name="limit_decel_rate">$(arg limit_decel_rate)</param>
+      
+      <!-- Monitoring parameters -->
+      <param name="current_monitoring_enabled">$(arg current_monitoring_enabled)</param>
+      <param name="temperature_monitoring_enabled">$(arg temperature_monitoring_enabled)</param>
+      <param name="voltage_monitoring_enabled">$(arg voltage_monitoring_enabled)</param>
+      <param name="max_current_threshold">$(arg max_current_threshold)</param>
+      <param name="max_temperature_threshold">$(arg max_temperature_threshold)</param>
+      <param name="min_voltage_threshold">$(arg min_voltage_threshold)</param>
+      
+      <!-- CUSTOMIZATION: Add additional parameters as needed -->
+      <!-- Example custom parameters:
+      <param name="custom_parameter_1">value1</param>
+      <param name="custom_parameter_2">value2</param>
+      -->
+    </hardware>
+    
+    <!-- Left Wheel Interface -->
+    <joint name="left_wheel_joint">
+      <command_interface name="velocity">
+        <param name="min">-$(arg max_speed)</param>
+        <param name="max">$(arg max_speed)</param>
+      </command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <!-- CUSTOMIZATION: Add additional interfaces if needed -->
+      <!-- <state_interface name="effort"/> -->
+    </joint>
+    
+    <!-- Right Wheel Interface -->
+    <joint name="right_wheel_joint">
+      <command_interface name="velocity">
+        <param name="min">-$(arg max_speed)</param>
+        <param name="max">$(arg max_speed)</param>
+      </command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    
+    <!-- CUSTOMIZATION: Add additional joints if needed -->
+    <!-- Example additional joint:
+    <joint name="additional_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    -->
+  </ros2_control>
+
+  <!-- ================================================================ -->
+  <!-- GAZEBO INTEGRATION - CUSTOMIZE FOR SIMULATION                   -->
+  <!-- ================================================================ -->
+
+  <xacro:if value="${'$(arg enable_gazebo)' == 'true'}">
+    <!-- Gazebo ros2_control plugin -->
+    <gazebo>
+      <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+        <!-- CUSTOMIZATION: Change controller configuration file -->
+        <parameters>$(find basicmicro_driver)/config/diff_drive_controllers.yaml</parameters>
+        <!-- Alternative configurations:
+        <parameters>$(find basicmicro_driver)/config/industrial_controllers.yaml</parameters>
+        <parameters>$(find basicmicro_driver)/config/custom_controllers.yaml</parameters>
+        <parameters>$(find your_package)/config/your_controllers.yaml</parameters>
+        -->
+      </plugin>
+    </gazebo>
+
+    <!-- Gazebo link properties -->
+    <gazebo reference="base_link">
+      <!-- CUSTOMIZATION: Modify material and physics properties -->
+      <material>Gazebo/Blue</material>
+      <mu1>0.2</mu1>
+      <mu2>0.2</mu2>
+      <kp>1000000.0</kp>
+      <kd>1.0</kd>
+    </gazebo>
+
+    <!-- Gazebo wheel properties -->
+    <gazebo reference="left_wheel">
+      <material>Gazebo/Black</material>
+      <!-- CUSTOMIZATION: Adjust friction and contact properties -->
+      <mu1>0.8</mu1>
+      <mu2>0.8</mu2>
+      <kp>1000000.0</kp>
+      <kd>1.0</kd>
+      <fdir1>1 0 0</fdir1>
+    </gazebo>
+    
+    <gazebo reference="right_wheel">
+      <material>Gazebo/Black</material>
+      <mu1>0.8</mu1>
+      <mu2>0.8</mu2>
+      <kp>1000000.0</kp>
+      <kd>1.0</kd>
+      <fdir1>1 0 0</fdir1>
+    </gazebo>
+
+    <!-- Gazebo caster properties -->
+    <xacro:if value="${caster_enabled}">
+      <gazebo reference="caster_wheel">
+        <material>Gazebo/Grey</material>
+        <!-- CUSTOMIZATION: Adjust caster friction (usually low for free rolling) -->
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+      </gazebo>
+    </xacro:if>
+  </xacro:if>
+
+  <!-- ================================================================ -->
+  <!-- ADDITIONAL CUSTOMIZATION EXAMPLES                               -->
+  <!-- ================================================================ -->
+
+  <!-- Example: Add sensors to your robot -->
+  <!--
+  <link name="lidar_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.05" length="0.1"/>
+      </geometry>
+      <material name="lidar_material">
+        <color rgba="0.0 0.0 0.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.05" length="0.1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+      <inertia ixx="0.001" iyy="0.001" izz="0.001" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <joint name="lidar_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="lidar_link"/>
+    <origin xyz="0 0 ${base_height/2 + 0.05}" rpy="0 0 0"/>
+  </joint>
+
+  <gazebo reference="lidar_link">
+    <sensor type="ray" name="lidar">
+      <pose>0 0 0 0 0 0</pose>
+      <visualize>true</visualize>
+      <update_rate>10</update_rate>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>360</samples>
+            <resolution>1</resolution>
+            <min_angle>-3.14159</min_angle>
+            <max_angle>3.14159</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.1</min>
+          <max>10.0</max>
+          <resolution>0.01</resolution>
+        </range>
+      </ray>
+      <plugin name="gazebo_ros_lidar_controller" filename="libgazebo_ros_ray_sensor.so">
+        <topicName>/scan</topicName>
+        <frameName>lidar_link</frameName>
+      </plugin>
+    </sensor>
+  </gazebo>
+  -->
+
+  <!-- Example: Add IMU sensor -->
+  <!--
+  <link name="imu_link">
+    <visual>
+      <geometry>
+        <box size="0.02 0.02 0.01"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.02 0.02 0.01"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.01"/>
+      <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <gazebo reference="imu_link">
+    <sensor type="imu" name="imu">
+      <always_on>true</always_on>
+      <update_rate>100</update_rate>
+      <plugin name="gazebo_ros_imu_controller" filename="libgazebo_ros_imu_sensor.so">
+        <topicName>/imu</topicName>
+        <bodyName>imu_link</bodyName>
+        <updateRateHZ>100.0</updateRateHZ>
+        <gaussianNoise>0.0</gaussianNoise>
+        <xyzOffset>0 0 0</xyzOffset>
+        <rpyOffset>0 0 0</rpyOffset>
+        <frameName>imu_link</frameName>
+      </plugin>
+    </sensor>
+  </gazebo>
+  -->
+
+</robot>

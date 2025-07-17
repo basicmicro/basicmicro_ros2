@@ -1,0 +1,15 @@
+# PerformHoming.srv
+# Service to perform homing sequence using specified method
+
+# Request
+string method_id            # Method ID from available methods
+string direction           # "forward", "backward" (if method supports choice)
+float64 homing_speed       # Homing speed (m/s)
+float64 timeout            # Timeout for homing operation (seconds)
+
+---
+
+# Response
+bool success               # True if homing was successful
+string message            # Status message or error description
+bool encoder_zeroed       # Whether encoder was automatically zeroed

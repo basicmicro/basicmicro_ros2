@@ -1,0 +1,16 @@
+# MoveToAbsolutePosition.srv
+# Service for absolute position control (servo mode)
+
+# Request
+float64 left_position_radians    # Absolute position for left motor (radians)
+float64 right_position_radians   # Absolute position for right motor (radians)
+float64 max_speed               # Maximum speed during move (m/s)
+float64 acceleration            # Acceleration rate (m/s²)
+float64 deceleration            # Deceleration rate (m/s²)
+bool buffer_command             # Whether to buffer the command for chaining
+
+---
+
+# Response
+bool success        # True if command was executed successfully
+string message      # Status message or error description

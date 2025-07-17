@@ -1,0 +1,14 @@
+# SetDutyCycle.srv
+# Service for controlling motor duty cycles with optional smooth acceleration
+
+# Request
+int16 left_duty     # Left motor duty cycle (-32767 to +32767)
+int16 right_duty    # Right motor duty cycle (-32767 to +32767)
+bool use_acceleration  # Whether to use smooth acceleration transition
+int32 acceleration  # Acceleration value for smooth changes (when use_acceleration=true)
+
+---
+
+# Response
+bool success        # True if command was executed successfully
+string message      # Status message or error description

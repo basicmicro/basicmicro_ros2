@@ -1,0 +1,57 @@
+# ROS2 build artifacts
+build/
+install/
+log/
+
+# Python artifacts
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+*.egg
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS-specific files
+Thumbs.db
+.directory
+
+# Local configuration and testing
+*.backup
+*.orig
+*.tmp
+
+# ROS2 specific
+.colcon_ignore
+*.bag
+*.db3
+
+# Documentation builds
+docs/_build/
+docs/.doctrees/
+
+# Local environment
+.env
+.venv/
+venv/
+env/
+
+# Test results and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+test_results/
+
+# Claude-related files
+.claude/
+CLAUDE.md
