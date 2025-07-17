@@ -19,6 +19,9 @@ DEFAULT_SYSTEM_PATH="/opt/ros/$DEFAULT_ROS_DISTRO"
 USE_VIRTUAL_ENV=true
 INSTALL_MODE="development"  # development or system-wide
 
+# Repository URLs
+BASICMICRO_PYTHON_REPO="https://github.com/acidtech/basicmicro_python.git"
+
 # Function to print colored output
 print_status() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -114,6 +117,34 @@ check_ros2_installation() {
     fi
 }
 
+# Function to setup dependencies
+setup_dependencies() {
+    print_status "Setting up dependencies..."
+    
+    # Get the parent directory of the current driver directory
+    CURRENT_DIR="$(pwd)"
+    PARENT_DIR="$(dirname "$CURRENT_DIR")"
+    
+    # Clone the Basicmicro Python library into the parent directory
+    cd "$PARENT_DIR"
+    if [ ! -d "basicmicro_python" ]; then
+        print_status "Cloning Basicmicro Python library..."
+        git clone "$BASICMICRO_PYTHON_REPO" basicmicro_python
+        print_success "Basicmicro Python library cloned to: $PARENT_DIR/basicmicro_python"
+    else
+        print_success "Basicmicro Python library already exists at: $PARENT_DIR/basicmicro_python"
+    fi
+    
+    # Set paths for later use
+    PROJECT_ROOT="$CURRENT_DIR"
+    BASICMICRO_PYTHON_DIR="$PARENT_DIR/basicmicro_python"
+    
+    # Return to original directory
+    cd "$CURRENT_DIR"
+    
+    print_success "Dependencies setup complete"
+}
+
 # Function to check workspace setup
 setup_workspace() {
     print_status "Setting up workspace..."
@@ -125,13 +156,18 @@ setup_workspace() {
         print_success "Workspace already exists: $DEFAULT_WORKSPACE_PATH"
     fi
     
-    # For development installation, copy source files to workspace
-    if [ "$INSTALL_MODE" = "development" ]; then
-        print_status "Copying source files to workspace..."
-        # Copy the entire ROS2 Drivers directory structure to workspace src
-        rsync -av --exclude='.git' "$PROJECT_ROOT" "$DEFAULT_WORKSPACE_PATH/src/" || cp -r "$PROJECT_ROOT" "$DEFAULT_WORKSPACE_PATH/src/"
-        print_success "Source files copied to workspace"
+    # Setup dependencies (clone basicmicro_python)
+    setup_dependencies
+    
+    # Copy current driver directory to workspace
+    print_status "Copying driver to workspace..."
+    if [ -d "$DEFAULT_WORKSPACE_PATH/src/basicmicro_driver" ]; then
+        print_warning "Driver already exists in workspace, removing old version..."
+        rm -rf "$DEFAULT_WORKSPACE_PATH/src/basicmicro_driver"
     fi
+    
+    cp -r "$PROJECT_ROOT" "$DEFAULT_WORKSPACE_PATH/src/basicmicro_driver"
+    print_success "Driver copied to workspace"
 }
 
 # Function to setup Python environment
@@ -189,15 +225,14 @@ install_basicmicro_library() {
     
     if [ "$INSTALL_MODE" = "system-wide" ]; then
         # For system-wide installation, use --break-system-packages for this specific package
-        PARENT_DIR="$(dirname "$(dirname "$0")")"
-        cd "../Basicmicro_python"
+        cd "$BASICMICRO_PYTHON_DIR"
         sudo pip3 install -e . --break-system-packages
         print_success "Basicmicro Python library installed system-wide"
         return
     fi
     
-    # Navigate to Basicmicro_python using stored project root
-    cd "$PROJECT_ROOT/Basicmicro_python"
+    # Navigate to cloned Basicmicro_python directory
+    cd "$BASICMICRO_PYTHON_DIR"
     pip install -e .
     
     print_success "Basicmicro Python library installed"
@@ -218,7 +253,7 @@ install_ros2_dependencies() {
     
     # Install dependencies
     cd "$DEFAULT_WORKSPACE_PATH"
-    rosdep install --from-paths src --ignore-src -r -y
+    rosdep install --from-paths src/basicmicro_driver --ignore-src -r -y
     
     print_success "ROS2 dependencies installed"
 }
@@ -232,10 +267,11 @@ build_package() {
         TEMP_WS="/tmp/basicmicro_build_ws"
         mkdir -p "$TEMP_WS/src"
         
-        # Copy the entire ROS2 Drivers directory structure using stored project root
+        # Copy the cloned ROS2 driver to temporary workspace
         ls -la "$PROJECT_ROOT" || print_error "Project root does not exist!"
         
-        rsync -av --exclude='.git' "$PROJECT_ROOT" "$TEMP_WS/src/" || cp -r "$PROJECT_ROOT" "$TEMP_WS/src/"
+        # Copy the driver package to temporary workspace
+        cp -r "$PROJECT_ROOT" "$TEMP_WS/src/basicmicro_driver"
         cd "$TEMP_WS"
         
         # Verify workspace structure
@@ -461,12 +497,19 @@ main() {
     
     # Store absolute script path before any directory changes
     SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-    PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+    
+    # Check if git is available
+    if ! command_exists git; then
+        print_error "Git is required for this installation. Please install git first:"
+        print_error "sudo apt install git"
+        exit 1
+    fi
     
     # Check if script is run from correct directory
     if [ ! -f "package.xml" ] || [ ! -f "setup.py" ]; then
         print_error "This script must be run from the basicmicro_driver directory"
-        print_error "Expected location: /path/to/ROS2 Drivers/basicmicro_driver/"
+        print_error "Please run: git clone https://github.com/acidtech/basicmicro-ros2-driver.git"
+        print_error "Then: cd basicmicro-ros2-driver && ./install.sh"
         exit 1
     fi
     

@@ -25,9 +25,9 @@ Before starting, ensure you have:
 First, clone the repository:
 
 ```bash
-# Clone the ROS2 Drivers repository
-git clone https://github.com/basicmicro/ROS2_Drivers.git
-cd ROS2_Drivers/basicmicro_driver
+# Clone the ROS2 Basicmicro driver repository
+git clone https://github.com/acidtech/basicmicro-ros2-driver.git
+cd basicmicro-ros2-driver
 ```
 
 ## Step 2: Install the ROS2 Driver System-Wide
@@ -42,6 +42,7 @@ Run the automated installation script - it will handle everything, including ROS
 
 **What this does:**
 - ✅ Checks for ROS2 installation (prompts to install if not found)
+- ✅ Clones the Basicmicro Python library dependency
 - ✅ Installs all Python dependencies system-wide (PyYAML, numpy, pyserial, empy, lark-parser, catkin_pkg)
 - ✅ Installs Basicmicro Python library
 - ✅ Installs ROS2 dependencies using rosdep
@@ -59,6 +60,8 @@ Run the automated installation script - it will handle everything, including ROS
 [INFO] Installation mode: system-wide
 [INFO] Checking ROS2 installation...
 [SUCCESS] ROS2 jazzy found and sourced
+[INFO] Setting up dependencies...
+[SUCCESS] Basicmicro Python library cloned to: /path/to/basicmicro_python
 [INFO] Installing Python dependencies...
 [SUCCESS] System Python dependencies installed
 [INFO] Installing Basicmicro Python library...

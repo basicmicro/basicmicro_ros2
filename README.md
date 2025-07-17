@@ -8,26 +8,59 @@ A comprehensive ROS2 driver for Basicmicro motor controllers (RoboClaw and MCP s
 
 1. **Clone the repository:**
    ```bash
-   cd ~/ros2_ws/src
-   git clone <repository_url>
+   git clone https://github.com/acidtech/basicmicro-ros2-driver.git
+   cd basicmicro-ros2-driver
    ```
 
-2. **Install dependencies:**
+2. **Run the automated installer:**
    ```bash
-   cd ~/ros2_ws/src/ROS2\ Drivers
-   
-   # Install Basicmicro Python library
-   cd Basicmicro_python
-   pip install -e .
+   ./install.sh
+   ```
+
+The installer will:
+- Check and install ROS2 if needed
+- Clone the required Basicmicro Python library dependency
+- Set up a ROS2 workspace with the driver
+- Install all dependencies
+- Build the package
+- Configure serial port permissions
+
+### Manual Installation (Advanced)
+
+If you prefer manual installation:
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/acidtech/basicmicro-ros2-driver.git
+   cd basicmicro-ros2-driver
+   ```
+
+2. **Clone the dependency:**
+   ```bash
    cd ..
+   git clone https://github.com/acidtech/basicmicro_python.git
+   ```
+
+3. **Set up ROS2 workspace:**
+   ```bash
+   mkdir -p ~/ros2_ws/src
+   cp -r basicmicro-ros2-driver ~/ros2_ws/src/basicmicro_driver
+   cd ~/ros2_ws
+   ```
+
+4. **Install dependencies:**
+   ```bash
+   # Install Basicmicro Python library
+   cd ../basicmicro_python
+   pip install -e .
+   cd ~/ros2_ws
    
    # Install ROS2 dependencies
-   rosdep install --from-paths . --ignore-src -r -y
+   rosdep install --from-paths src/basicmicro_driver --ignore-src -r -y
    ```
 
-3. **Build the package:**
+5. **Build the package:**
    ```bash
-   cd ~/ros2_ws
    colcon build --packages-select basicmicro_driver
    source install/setup.bash
    ```
@@ -373,6 +406,6 @@ This project is licensed under the Apache License 2.0 - see the LICENSE file for
 
 ## Acknowledgments
 
-- Built on the comprehensive [Basicmicro Python Library](../Basicmicro_python/)
+- Built on the comprehensive [Basicmicro Python Library](https://github.com/acidtech/basicmicro_python)
 - Follows ROS2 and ros2_control best practices
 - Tested across multiple controller types and robot configurations
