@@ -66,7 +66,7 @@ pip3 install --user pytest pytest-mock pytest-asyncio
 #### Basicmicro Python Library
 ```bash
 # Navigate to the Basicmicro Python library
-cd /path/to/ROS2_Drivers/Basicmicro_python
+cd /path/to/basicmicro_ros2/Basicmicro_python
 
 # Install in development mode
 pip3 install -e .
@@ -101,7 +101,7 @@ mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src
 
 # Clone the repository
-git clone <repository-url> ROS2_Drivers
+git clone <repository-url> basicmicro_ros2
 cd ~/ros2_ws
 ```
 
@@ -283,7 +283,7 @@ cd ~/ros2_ws
 source install/setup.bash
 
 # Run unit tests
-python3 -m pytest src/ROS2_Drivers/basicmicro_driver/test/unit/ -v
+python3 -m pytest src/basicmicro_ros2/basicmicro_driver/test/unit/ -v
 
 # Quick node startup test
 timeout 5s ros2 run basicmicro_driver basicmicro_node.py --ros-args -p port:=/dev/ttyACM0 || echo "Node startup test complete"

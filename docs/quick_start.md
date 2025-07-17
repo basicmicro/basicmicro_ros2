@@ -26,8 +26,8 @@ First, clone the repository:
 
 ```bash
 # Clone the ROS2 Basicmicro driver repository
-git clone https://github.com/acidtech/basicmicro-ros2-driver.git
-cd basicmicro-ros2-driver
+git clone https://github.com/acidtech/basicmicro_ros2.git
+cd basicmicro_ros2
 ```
 
 ## Step 2: Install the ROS2 Driver System-Wide

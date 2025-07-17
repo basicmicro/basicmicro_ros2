@@ -8,8 +8,8 @@ A comprehensive ROS2 driver for Basicmicro motor controllers (RoboClaw and MCP s
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/acidtech/basicmicro-ros2-driver.git
-   cd basicmicro-ros2-driver
+   git clone https://github.com/acidtech/basicmicro_ros2.git
+   cd basicmicro_ros2
    ```
 
 2. **Run the automated installer:**
@@ -31,8 +31,8 @@ If you prefer manual installation:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/acidtech/basicmicro-ros2-driver.git
-   cd basicmicro-ros2-driver
+   git clone https://github.com/acidtech/basicmicro_ros2.git
+   cd basicmicro_ros2
    ```
 
 2. **Clone the dependency:**
@@ -44,7 +44,7 @@ If you prefer manual installation:
 3. **Set up ROS2 workspace:**
    ```bash
    mkdir -p ~/ros2_ws/src
-   cp -r basicmicro-ros2-driver ~/ros2_ws/src/basicmicro_driver
+   cp -r basicmicro_ros2 ~/ros2_ws/src/basicmicro_driver
    cd ~/ros2_ws
    ```
 

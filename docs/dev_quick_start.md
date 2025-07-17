@@ -29,9 +29,9 @@ First, clone the repository to your development workspace:
 mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src
 
-# Clone the ROS2 Drivers repository
-git clone https://github.com/basicmicro/ROS2_Drivers.git
-cd ROS2_Drivers/basicmicro_driver
+# Clone the ROS2 Basicmicro driver repository
+git clone https://github.com/acidtech/basicmicro_ros2.git
+cd basicmicro_ros2
 ```
 
 ## Step 2: Install the ROS2 Driver for Development

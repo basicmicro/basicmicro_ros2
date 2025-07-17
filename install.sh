@@ -508,8 +508,8 @@ main() {
     # Check if script is run from correct directory
     if [ ! -f "package.xml" ] || [ ! -f "setup.py" ]; then
         print_error "This script must be run from the basicmicro_driver directory"
-        print_error "Please run: git clone https://github.com/acidtech/basicmicro-ros2-driver.git"
-        print_error "Then: cd basicmicro-ros2-driver && ./install.sh"
+        print_error "Please run: git clone https://github.com/acidtech/basicmicro_ros2.git"
+        print_error "Then: cd basicmicro_ros2 && ./install.sh"
         exit 1
     fi
     
