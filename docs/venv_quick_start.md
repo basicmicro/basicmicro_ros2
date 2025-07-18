@@ -1,6 +1,6 @@
-# Development Quick Start Guide
+# Virtual Environment Quick Start Guide
 
-Get your Basicmicro ROS2 driver running for development work - workspace-based installation for iterative development and testing.
+Get your Basicmicro ROS2 driver running for development work - workspace-based installation with virtual environment for iterative development and testing.
 
 > 📦 **For production use**: See [System-Wide Quick Start Guide](system_wide_quick_start.md) for system-wide installation.
 
@@ -266,4 +266,4 @@ Once development setup is confirmed:
 **Estimated completion time: 5-10 minutes for development setup**
 
 ---
-*The development installation provides full flexibility for code changes and testing. For production deployment, switch to system-wide installation using the [System-Wide Quick Start Guide](system_wide_quick_start.md).*
+*The virtual environment installation provides full flexibility for code changes and testing. For production deployment, switch to system-wide installation using the [System-Wide Quick Start Guide](system_wide_quick_start.md).*

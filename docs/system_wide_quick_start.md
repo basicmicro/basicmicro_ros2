@@ -2,7 +2,7 @@
 
 Get your Basicmicro ROS2 driver running in under 5 minutes with system-wide installation - from initial setup to moving motors.
 
-> 🔧 **For development work**: See [Development Quick Start](dev_quick_start.md) for workspace-based installation.
+> 🔧 **For development work**: See [Virtual Environment Quick Start](venv_quick_start.md) for workspace-based installation.
 
 ## Prerequisites Checklist
 
@@ -139,7 +139,7 @@ Use ROS2 Humble instead of Jazzy.
 ```bash
 ./install.sh --dev
 ```
-For development work - see [Development Quick Start](dev_quick_start.md) for details.
+For development work - see [Virtual Environment Quick Start](venv_quick_start.md) for details.
 
 ## You Know It's Working When...
 
