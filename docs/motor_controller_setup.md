@@ -376,4 +376,4 @@ Motion Studio Files to Save:
 **Proper Motion Studio configuration is essential for reliable ROS2 operation. Take time to tune parameters correctly.**
 
 ---
-*Next: [Quick Start Guide](quick_start.md) to test your configured controller with ROS2.*
+*Next: [System-Wide Quick Start Guide](system_wide_quick_start.md) to test your configured controller with ROS2.*

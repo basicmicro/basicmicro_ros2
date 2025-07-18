@@ -968,7 +968,7 @@ sudo chmod 666 /dev/ttyACM0
 **Package Not Found:**
 ```bash
 # Rebuild and source workspace
-cd "/mnt/c/Users/acidtech/Documents/Claude-Code/ROS2 Drivers"
+cd ~/ros2_ws
 colcon build --packages-select basicmicro_driver
 source install/setup.bash
 

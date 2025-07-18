@@ -2,7 +2,7 @@
 
 Get your Basicmicro ROS2 driver running for development work - workspace-based installation for iterative development and testing.
 
-> 📦 **For production use**: See [Quick Start Guide](quick_start.md) for system-wide installation.
+> 📦 **For production use**: See [System-Wide Quick Start Guide](system_wide_quick_start.md) for system-wide installation.
 
 ## Prerequisites Checklist
 
@@ -30,7 +30,7 @@ mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src
 
 # Clone the ROS2 Basicmicro driver repository
-git clone https://github.com/acidtech/basicmicro_ros2.git
+git clone https://github.com/basicmicro/basicmicro_ros2.git
 cd basicmicro_ros2
 ```
 
@@ -48,7 +48,7 @@ Run the automated installation script - it will handle everything, including ROS
 - ✅ Checks for ROS2 installation (prompts to install if not found)
 - ✅ Creates Python virtual environment with system packages access
 - ✅ Installs all Python dependencies (PyYAML, numpy, pyserial, empy, lark-parser, catkin_pkg)
-- ✅ Installs Basicmicro Python library
+- ✅ Installs Basicmicro Python library via pip (pip install basicmicro)
 - ✅ Installs ROS2 dependencies using rosdep
 - ✅ Builds the ROS2 package in workspace
 - ✅ Sets up serial port permissions
@@ -65,8 +65,9 @@ Run the automated installation script - it will handle everything, including ROS
 [SUCCESS] ROS2 jazzy already sourced
 [SUCCESS] Workspace already exists: /home/user/ros2_ws
 [SUCCESS] Virtual environment created with system packages access
-[SUCCESS] Python dependencies installed
-[SUCCESS] Basicmicro Python library installed
+[INFO] Installing Python dependencies...
+[INFO] Installing Basicmicro Python library...
+[SUCCESS] Python dependencies and Basicmicro library installed
 [SUCCESS] ROS2 dependencies installed
 [SUCCESS] Package built successfully
 [SUCCESS] Launch script created: /home/user/ros2_ws/launch_basicmicro.sh
@@ -265,4 +266,4 @@ Once development setup is confirmed:
 **Estimated completion time: 5-10 minutes for development setup**
 
 ---
-*The development installation provides full flexibility for code changes and testing. For production deployment, switch to system-wide installation using the [Quick Start Guide](quick_start.md).*
+*The development installation provides full flexibility for code changes and testing. For production deployment, switch to system-wide installation using the [System-Wide Quick Start Guide](system_wide_quick_start.md).*

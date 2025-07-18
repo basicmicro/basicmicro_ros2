@@ -19,8 +19,8 @@ DEFAULT_SYSTEM_PATH="/opt/ros/$DEFAULT_ROS_DISTRO"
 USE_VIRTUAL_ENV=true
 INSTALL_MODE="development"  # development or system-wide
 
-# Repository URLs
-BASICMICRO_PYTHON_REPO="https://github.com/acidtech/basicmicro_python.git"
+# Package configuration
+BASICMICRO_PACKAGE="basicmicro"
 
 # Function to print colored output
 print_status() {
@@ -121,26 +121,8 @@ check_ros2_installation() {
 setup_dependencies() {
     print_status "Setting up dependencies..."
     
-    # Get the parent directory of the current driver directory
-    CURRENT_DIR="$(pwd)"
-    PARENT_DIR="$(dirname "$CURRENT_DIR")"
-    
-    # Clone the Basicmicro Python library into the parent directory
-    cd "$PARENT_DIR"
-    if [ ! -d "basicmicro_python" ]; then
-        print_status "Cloning Basicmicro Python library..."
-        git clone "$BASICMICRO_PYTHON_REPO" basicmicro_python
-        print_success "Basicmicro Python library cloned to: $PARENT_DIR/basicmicro_python"
-    else
-        print_success "Basicmicro Python library already exists at: $PARENT_DIR/basicmicro_python"
-    fi
-    
     # Set paths for later use
-    PROJECT_ROOT="$CURRENT_DIR"
-    BASICMICRO_PYTHON_DIR="$PARENT_DIR/basicmicro_python"
-    
-    # Return to original directory
-    cd "$CURRENT_DIR"
+    PROJECT_ROOT="$(pwd)"
     
     print_success "Dependencies setup complete"
 }
@@ -206,7 +188,11 @@ install_python_dependencies() {
         # Use apt for system-wide installation to avoid PEP 668 issues
         sudo apt update
         sudo apt install -y python3-yaml python3-numpy python3-serial python3-empy python3-lark python3-catkin-pkg python3-pip python3-setuptools python3-wheel ros-$DEFAULT_ROS_DISTRO-ament-package ros-$DEFAULT_ROS_DISTRO-ament-cmake ros-$DEFAULT_ROS_DISTRO-ament-cmake-core
-        print_success "System Python dependencies installed"
+        
+        # Install basicmicro package system-wide
+        print_status "Installing Basicmicro Python library system-wide..."
+        sudo pip3 install "$BASICMICRO_PACKAGE" --break-system-packages
+        print_success "System Python dependencies and Basicmicro library installed"
         return
     fi
     
@@ -216,27 +202,13 @@ install_python_dependencies() {
     pip install -U pip setuptools wheel
     pip install PyYAML numpy pyserial empy lark-parser catkin_pkg
     
-    print_success "Python dependencies installed"
+    # Install basicmicro package
+    print_status "Installing Basicmicro Python library..."
+    pip install "$BASICMICRO_PACKAGE"
+    
+    print_success "Python dependencies and Basicmicro library installed"
 }
 
-# Function to install Basicmicro Python library
-install_basicmicro_library() {
-    print_status "Installing Basicmicro Python library..."
-    
-    if [ "$INSTALL_MODE" = "system-wide" ]; then
-        # For system-wide installation, use --break-system-packages for this specific package
-        cd "$BASICMICRO_PYTHON_DIR"
-        sudo pip3 install -e . --break-system-packages
-        print_success "Basicmicro Python library installed system-wide"
-        return
-    fi
-    
-    # Navigate to cloned Basicmicro_python directory
-    cd "$BASICMICRO_PYTHON_DIR"
-    pip install -e .
-    
-    print_success "Basicmicro Python library installed"
-}
 
 # Function to install ROS2 dependencies
 install_ros2_dependencies() {
@@ -558,8 +530,8 @@ main() {
     # Check if script is run from correct directory
     if [ ! -f "package.xml" ] || [ ! -f "setup.py" ]; then
         print_error "This script must be run from the basicmicro_driver directory"
-        print_error "Please run: git clone https://github.com/acidtech/basicmicro_ros2.git"
-        print_error "Then: cd basicmicro_ros2 && ./install.sh"
+        print_error "Please run: git clone https://github.com/basicmicro/basicmicro_ros2.git"
+        print_error "Then: cd basicmicro_ros2/basicmicro_driver && ./install.sh"
         exit 1
     fi
     
@@ -571,7 +543,6 @@ main() {
     setup_workspace
     setup_python_environment
     install_python_dependencies
-    install_basicmicro_library
     install_ros2_dependencies
     build_package
     setup_serial_permissions

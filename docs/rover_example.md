@@ -8,7 +8,7 @@ Before starting this example, ensure you have completed:
 
 ✅ **Hardware Setup**: Motion Studio configured for differential drive ([motor_controller_setup.md](motor_controller_setup.md))
 ✅ **ROS2 Installation**: Package built and environment sourced ([installation.md](installation.md))
-✅ **Hardware Connection**: Controller connected and recognized by system ([quick_start.md](quick_start.md))
+✅ **Hardware Connection**: Controller connected and recognized by system ([system_wide_quick_start.md](system_wide_quick_start.md))
 
 ### Required Hardware Configuration
 
@@ -46,7 +46,7 @@ Controller: USB Roboclaw 2x15a v4.4.2
 
 ```bash
 # Navigate to workspace
-cd "/mnt/c/Users/acidtech/Documents/Claude-Code/ROS2 Drivers"
+cd ~/ros2_ws
 
 # Source ROS2 environment
 source /opt/ros/jazzy/setup.bash  # Or your ROS2 distribution

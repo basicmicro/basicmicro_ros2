@@ -372,7 +372,7 @@ After successful installation:
 
 1. **Controller Configuration**: See [Motor Controller Setup Guide](motor_controller_setup.md)
 2. **WSL Users**: Follow [WSL Comport Setup Guide](wsl_comport_setup.md)
-3. **Quick Start**: Try the [Quick Start Guide](quick_start.md) for immediate functionality
+3. **Quick Start**: Try the [System-Wide Quick Start Guide](system_wide_quick_start.md) for immediate functionality
 4. **Examples**: Run demonstration scripts (`rover_demo.py`, `arm_demo.py`)
 
 ## Installation Verification Checklist
