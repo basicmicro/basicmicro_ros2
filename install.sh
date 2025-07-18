@@ -233,9 +233,22 @@ install_ros2_dependencies() {
     # Update rosdep
     rosdep update
     
-    # Install dependencies
+    # Install dependencies - find the correct package path
     cd "$DEFAULT_WORKSPACE_PATH"
-    rosdep install --from-paths src/basicmicro_driver --ignore-src -r -y
+    
+    # Check which path exists for rosdep
+    if [ -d "src/basicmicro_driver" ]; then
+        PACKAGE_PATH="src/basicmicro_driver"
+    elif [ -d "src/basicmicro_ros2/basicmicro_driver" ]; then
+        PACKAGE_PATH="src/basicmicro_ros2/basicmicro_driver"
+    else
+        print_error "Cannot find basicmicro_driver package in workspace"
+        print_error "Expected: src/basicmicro_driver or src/basicmicro_ros2/basicmicro_driver"
+        exit 1
+    fi
+    
+    print_status "Installing rosdep dependencies from $PACKAGE_PATH..."
+    rosdep install --from-paths "$PACKAGE_PATH" --ignore-src -r -y
     
     print_success "ROS2 dependencies installed"
 }
