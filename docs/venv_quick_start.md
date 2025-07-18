@@ -22,10 +22,11 @@ Before starting, ensure you have:
 
 ## Step 1: Get the Project
 
-First, clone the repository to your development workspace:
+You have **two flexible options** for workspace setup:
 
+### Option A: Clone Directly to Workspace (Recommended)
 ```bash
-# Create a ROS2 workspace if you don't have one
+# Create a ROS2 workspace (default or custom location)
 mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src
 
@@ -34,14 +35,44 @@ git clone https://github.com/basicmicro/basicmicro_ros2.git
 cd basicmicro_ros2
 ```
 
+### Option B: Clone Anywhere, Let Script Copy
+```bash
+# Clone to any location you prefer
+git clone https://github.com/basicmicro/basicmicro_ros2.git ~/Downloads/basicmicro_ros2
+cd ~/Downloads/basicmicro_ros2
+
+# Script will copy to workspace during installation
+```
+
+### Custom Workspace Locations
+```bash
+# Use a custom workspace location
+mkdir -p ~/my_robotics_projects/workspace/src
+cd ~/my_robotics_projects/workspace/src
+git clone https://github.com/basicmicro/basicmicro_ros2.git
+cd basicmicro_ros2
+
+# Or clone anywhere and specify workspace during install:
+# ./install.sh --dev --workspace ~/my_robotics_projects/workspace
+```
+
+> 💡 **Performance Tip**: Option A (clone directly to workspace) is more efficient as it avoids copying. Option B gives you flexibility to test from any location.
+
 ## Step 2: Install the ROS2 Driver for Development
 
 Run the automated installation script - it will handle everything, including ROS2 installation if needed:
 
 ### Development Installation
+
 ```bash
-# Run the automated installation script for development
+# Default installation (uses ~/ros2_ws)
 ./install.sh --dev
+
+# Custom workspace installation
+./install.sh --dev --workspace ~/my_robotics_projects/workspace
+
+# Without virtual environment (uses system Python)
+./install.sh --dev --no-venv
 ```
 
 **What this does:**
@@ -160,29 +191,33 @@ ros2 node info /basicmicro_node
 
 ## Installation Script Options
 
-### Standard Development Installation
-```bash
-./install.sh --dev
-```
-Uses virtual environment with system packages access (recommended for development).
+### Workspace Location Options
 
-### Development Without Virtual Environment
-```bash
-./install.sh --dev --no-venv
-```
-Uses system Python instead of virtual environment.
+| Command | Workspace Location | Virtual Environment | Use Case |
+|---------|-------------------|---------------------|----------|
+| `./install.sh --dev` | `~/ros2_ws` | Yes | Standard development |
+| `./install.sh --dev --workspace ~/custom_ws` | `~/custom_ws` | Yes | Custom location |
+| `./install.sh --dev --no-venv` | `~/ros2_ws` | No | System Python only |
 
-### Custom Workspace
+### Advanced Options
+
+**Custom Workspace:**
 ```bash
 ./install.sh --dev --workspace /path/to/your/workspace
 ```
-Install to a different workspace location.
+Install to any directory you prefer. Creates `src/`, `venv/`, `build/`, `install/` in specified location.
 
-### Different ROS2 Distribution
+**Different ROS2 Distribution:**
 ```bash
 ./install.sh --dev --ros-distro humble
 ```
 Use ROS2 Humble instead of Jazzy.
+
+**No Virtual Environment:**
+```bash
+./install.sh --dev --no-venv
+```
+Uses system Python instead of virtual environment (not recommended for development).
 
 ## You Know It's Working When...
 
@@ -236,11 +271,20 @@ source venv/bin/activate
 python -c "import rclpy; print('ROS2 Python OK')"
 ```
 
+## Workspace Location Summary
+
+| Setup Approach | Clone Location | Install Command | Final Package Location |
+|----------------|----------------|-----------------|----------------------|
+| **Standard** | `~/ros2_ws/src/` | `./install.sh --dev` | `~/ros2_ws/src/basicmicro_ros2/` |
+| **Custom Direct** | `~/custom_ws/src/` | `./install.sh --dev --workspace ~/custom_ws` | `~/custom_ws/src/basicmicro_ros2/` |
+| **Clone Anywhere** | Any directory | `./install.sh --dev --workspace ~/target_ws` | `~/target_ws/src/basicmicro_driver/` (copied) |
+
 ## Development vs Production
 
-| Feature | Development Mode | System-Wide Mode |
-|---------|------------------|------------------|
-| **Installation Location** | `~/ros2_ws/` | `/opt/ros/jazzy/` |
+| Feature | Virtual Environment Mode | System-Wide Mode |
+|---------|---------------------------|------------------|
+| **Installation Location** | Custom or `~/ros2_ws/` | `/opt/ros/jazzy/` |
+| **Clone Location** | Flexible | Any directory |
 | **Environment Setup** | Required each session | Automatic |
 | **Code Changes** | Easy rebuild | Requires reinstall |
 | **Testing** | Isolated workspace | System-wide impact |

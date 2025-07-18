@@ -22,13 +22,20 @@ Before starting, ensure you have:
 
 ## Step 1: Get the Project
 
-First, clone the repository:
+Clone the repository to **any location** you prefer - system-wide installation is location-independent:
 
 ```bash
-# Clone the ROS2 Basicmicro driver repository
+# Clone the ROS2 Basicmicro driver repository to any directory
 git clone https://github.com/basicmicro/basicmicro_ros2.git
 cd basicmicro_ros2
+
+# Examples of different clone locations (all work the same):
+# git clone https://github.com/basicmicro/basicmicro_ros2.git ~/Downloads/basicmicro_ros2
+# git clone https://github.com/basicmicro/basicmicro_ros2.git /tmp/basicmicro_test
+# git clone https://github.com/basicmicro/basicmicro_ros2.git ~/Documents/robotics/basicmicro_ros2
 ```
+
+> 💡 **Location Flexibility**: For system-wide installation, the clone location doesn't matter. The installer creates a temporary workspace and installs to `/opt/ros/jazzy/` for global access.
 
 ## Step 2: Install the ROS2 Driver System-Wide
 
