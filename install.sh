@@ -138,10 +138,20 @@ setup_workspace() {
         print_success "Workspace already exists: $DEFAULT_WORKSPACE_PATH"
     fi
     
-    # Setup dependencies (clone basicmicro_python)
+    # Setup dependencies
     setup_dependencies
     
-    # Copy current driver directory to workspace
+    # For development mode, check if we're already in the correct workspace location
+    if [ "$INSTALL_MODE" = "development" ]; then
+        # Check if we're running from within the workspace
+        CURRENT_PATH="$(pwd)"
+        if [[ "$CURRENT_PATH" == "$DEFAULT_WORKSPACE_PATH/src"* ]]; then
+            print_success "Already running from workspace location, skipping copy"
+            return
+        fi
+    fi
+    
+    # Copy current driver directory to workspace (for system-wide or external development)
     print_status "Copying driver to workspace..."
     if [ -d "$DEFAULT_WORKSPACE_PATH/src/basicmicro_driver" ]; then
         print_warning "Driver already exists in workspace, removing old version..."
