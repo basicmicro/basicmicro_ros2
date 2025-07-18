@@ -364,7 +364,7 @@ Visual and Simulation:
 
   <ros2_control name="CustomBasicmicroSystem" type="system">
     <hardware>
-      <plugin>basicmicro_driver/BasicmicroHardwareInterface</plugin>
+      <plugin>basicmicro_ros2/BasicmicroHardwareInterface</plugin>
       
       <!-- Hardware connection parameters -->
       <param name="port">$(arg port)</param>
@@ -450,10 +450,10 @@ Visual and Simulation:
     <gazebo>
       <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
         <!-- CUSTOMIZATION: Change controller configuration file -->
-        <parameters>$(find basicmicro_driver)/config/diff_drive_controllers.yaml</parameters>
+        <parameters>$(find basicmicro_ros2)/config/diff_drive_controllers.yaml</parameters>
         <!-- Alternative configurations:
-        <parameters>$(find basicmicro_driver)/config/industrial_controllers.yaml</parameters>
-        <parameters>$(find basicmicro_driver)/config/custom_controllers.yaml</parameters>
+        <parameters>$(find basicmicro_ros2)/config/industrial_controllers.yaml</parameters>
+        <parameters>$(find basicmicro_ros2)/config/custom_controllers.yaml</parameters>
         <parameters>$(find your_package)/config/your_controllers.yaml</parameters>
         -->
       </plugin>

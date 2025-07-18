@@ -50,7 +50,7 @@ def generate_launch_description():
     """Generate the launch description for the Basicmicro driver system."""
     
     # Package directories
-    pkg_share = FindPackageShare('basicmicro_driver')
+    pkg_share = FindPackageShare('basicmicro_ros2')
     
     # Launch arguments with defaults
     launch_args = [
@@ -315,7 +315,7 @@ def generate_launch_description():
         
         # Motion Configuration Service
         motion_config_service = Node(
-            package='basicmicro_driver',
+            package='basicmicro_ros2',
             executable='motion_config_service_node',
             name='motion_config_service',
             output='screen',
@@ -329,7 +329,7 @@ def generate_launch_description():
         
         # Distance Movement Service
         distance_movement_service = Node(
-            package='basicmicro_driver',
+            package='basicmicro_ros2',
             executable='distance_movement_service_node',
             name='distance_movement_service',
             output='screen',
@@ -343,7 +343,7 @@ def generate_launch_description():
         
         # Trajectory Execution Service
         trajectory_service = Node(
-            package='basicmicro_driver',
+            package='basicmicro_ros2',
             executable='trajectory_service_node',
             name='trajectory_service',
             output='screen',
@@ -357,7 +357,7 @@ def generate_launch_description():
         
         # Servo Position Control Service
         servo_position_service = Node(
-            package='basicmicro_driver',
+            package='basicmicro_ros2',
             executable='servo_position_service_node', 
             name='servo_position_service',
             output='screen',
@@ -371,7 +371,7 @@ def generate_launch_description():
         
         # Duty Control Service
         duty_control_service = Node(
-            package='basicmicro_driver',
+            package='basicmicro_ros2',
             executable='duty_control_service_node',
             name='duty_control_service',
             output='screen',
@@ -385,7 +385,7 @@ def generate_launch_description():
         
         # Trajectory Monitor
         trajectory_monitor = Node(
-            package='basicmicro_driver',
+            package='basicmicro_ros2',
             executable='trajectory_monitor_node',
             name='trajectory_monitor',
             output='screen',
@@ -400,7 +400,7 @@ def generate_launch_description():
         
         # Diagnostic Publisher
         diagnostic_publisher = Node(
-            package='basicmicro_driver',
+            package='basicmicro_ros2',
             executable='diagnostic_publisher_node',
             name='diagnostic_publisher',
             output='screen',
@@ -415,7 +415,7 @@ def generate_launch_description():
         
         # Performance Monitor
         performance_monitor = Node(
-            package='basicmicro_driver',
+            package='basicmicro_ros2',
             executable='performance_monitor_node',
             name='performance_monitor',
             output='screen',

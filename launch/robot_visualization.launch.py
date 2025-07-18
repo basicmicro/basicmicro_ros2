@@ -43,11 +43,11 @@ def generate_launch_description():
     """Generate launch description for robot visualization."""
     
     # Package directories
-    pkg_basicmicro_driver = get_package_share_directory('basicmicro_driver')
+    pkg_basicmicro_ros2 = get_package_share_directory('basicmicro_ros2')
     
     # Default paths
-    default_urdf_path = os.path.join(pkg_basicmicro_driver, 'urdf', 'differential_drive_robot.urdf.xacro')
-    default_rviz_path = os.path.join(pkg_basicmicro_driver, 'rviz', 'basicmicro_robot.rviz')
+    default_urdf_path = os.path.join(pkg_basicmicro_ros2, 'urdf', 'differential_drive_robot.urdf.xacro')
+    default_rviz_path = os.path.join(pkg_basicmicro_ros2, 'rviz', 'basicmicro_robot.rviz')
     
     # Launch arguments
     robot_description_file_arg = DeclareLaunchArgument(
@@ -137,13 +137,13 @@ def generate_launch_description():
         
         # Select appropriate URDF file based on configuration
         if robot_config == 'diff_drive':
-            urdf_file = os.path.join(pkg_basicmicro_driver, 'urdf', 'differential_drive_robot.urdf.xacro')
+            urdf_file = os.path.join(pkg_basicmicro_ros2, 'urdf', 'differential_drive_robot.urdf.xacro')
         elif robot_config == 'industrial':
-            urdf_file = os.path.join(pkg_basicmicro_driver, 'urdf', 'industrial_robot.urdf.xacro')
+            urdf_file = os.path.join(pkg_basicmicro_ros2, 'urdf', 'industrial_robot.urdf.xacro')
         elif robot_config == 'multi_controller':
-            urdf_file = os.path.join(pkg_basicmicro_driver, 'urdf', 'multi_controller_robot.urdf.xacro')
+            urdf_file = os.path.join(pkg_basicmicro_ros2, 'urdf', 'multi_controller_robot.urdf.xacro')
         elif robot_config == 'custom':
-            urdf_file = os.path.join(pkg_basicmicro_driver, 'urdf', 'custom_robot_template.urdf.xacro')
+            urdf_file = os.path.join(pkg_basicmicro_ros2, 'urdf', 'custom_robot_template.urdf.xacro')
         else:
             # Use explicitly provided file
             urdf_file = LaunchConfiguration('robot_description_file').perform(context)

@@ -91,7 +91,7 @@ def generate_launch_description():
         actions = []
 
         # Get the package directory
-        pkg_share = FindPackageShare('basicmicro_driver').find('basicmicro_driver')
+        pkg_share = FindPackageShare('basicmicro_ros2').find('basicmicro_ros2')
         
         # Generate robot description
         urdf_file = os.path.join(pkg_share, 'urdf', 'differential_drive_robot.urdf.xacro')
@@ -123,7 +123,7 @@ def generate_launch_description():
         # For now, just use our simple node instead of full ros2_control
         # A real user would use ros2_control, but our implementation isn't complete
         basicmicro_node = Node(
-            package='basicmicro_driver',
+            package='basicmicro_ros2',
             executable='basicmicro_node',
             name='basicmicro_driver',
             output='screen',

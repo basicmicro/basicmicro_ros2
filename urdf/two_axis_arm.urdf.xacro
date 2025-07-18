@@ -277,7 +277,7 @@ Parameters (can be overridden via xacro arguments):
   <!-- ros2_control Hardware Interface (Servo Position Control) -->
   <ros2_control name="BasicmicroArmSystem" type="system">
     <hardware>
-      <plugin>basicmicro_driver/BasicmicroHardwareInterface</plugin>
+      <plugin>basicmicro_ros2/BasicmicroHardwareInterface</plugin>
       
       <!-- Hardware connection parameters -->
       <param name="port">$(arg port)</param>
@@ -352,7 +352,7 @@ Parameters (can be overridden via xacro arguments):
   <!-- Gazebo Integration -->
   <gazebo>
     <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
-      <parameters>$(find basicmicro_driver)/config/arm_controllers.yaml</parameters>
+      <parameters>$(find basicmicro_ros2)/config/arm_controllers.yaml</parameters>
     </plugin>
   </gazebo>
 

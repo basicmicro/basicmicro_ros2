@@ -37,7 +37,7 @@ def generate_launch_description():
     """Generate launch description for two-axis arm control"""
     
     # Package directory
-    pkg_share = FindPackageShare(package='basicmicro_driver').find('basicmicro_driver')
+    pkg_share = FindPackageShare(package='basicmicro_ros2').find('basicmicro_ros2')
     
     # URDF file path
     urdf_file = os.path.join(pkg_share, 'urdf', 'two_axis_arm.urdf.xacro')
@@ -167,7 +167,7 @@ def generate_launch_description():
         
         # Arm Node (Hardware Interface)
         Node(
-            package='basicmicro_driver',
+            package='basicmicro_ros2',
             executable='arm_node.py',
             name='arm_node',
             output='screen',

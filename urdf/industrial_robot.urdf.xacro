@@ -260,7 +260,7 @@ Parameters (can be overridden via xacro arguments):
   <!-- ros2_control Hardware Interface (Industrial Configuration) -->
   <ros2_control name="BasicmicroIndustrialSystem" type="system">
     <hardware>
-      <plugin>basicmicro_driver/BasicmicroHardwareInterface</plugin>
+      <plugin>basicmicro_ros2/BasicmicroHardwareInterface</plugin>
       
       <!-- Hardware connection parameters -->
       <param name="port">$(arg port)</param>
@@ -324,7 +324,7 @@ Parameters (can be overridden via xacro arguments):
   <!-- Gazebo Integration (Industrial Configuration) -->
   <gazebo>
     <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
-      <parameters>$(find basicmicro_driver)/config/industrial_controllers.yaml</parameters>
+      <parameters>$(find basicmicro_ros2)/config/industrial_controllers.yaml</parameters>
     </plugin>
   </gazebo>
 
