@@ -153,12 +153,12 @@ setup_workspace() {
     
     # Copy current driver directory to workspace (for system-wide or external development)
     print_status "Copying driver to workspace..."
-    if [ -d "$DEFAULT_WORKSPACE_PATH/src/basicmicro_driver" ]; then
+    if [ -d "$DEFAULT_WORKSPACE_PATH/src/basicmicro_ros2" ]; then
         print_warning "Driver already exists in workspace, removing old version..."
-        rm -rf "$DEFAULT_WORKSPACE_PATH/src/basicmicro_driver"
+        rm -rf "$DEFAULT_WORKSPACE_PATH/src/basicmicro_ros2"
     fi
     
-    cp -r "$PROJECT_ROOT" "$DEFAULT_WORKSPACE_PATH/src/basicmicro_driver"
+    cp -r "$PROJECT_ROOT" "$DEFAULT_WORKSPACE_PATH/src/basicmicro_ros2"
     print_success "Driver copied to workspace"
 }
 
@@ -237,13 +237,11 @@ install_ros2_dependencies() {
     cd "$DEFAULT_WORKSPACE_PATH"
     
     # Check which path exists for rosdep
-    if [ -d "src/basicmicro_driver" ]; then
-        PACKAGE_PATH="src/basicmicro_driver"
-    elif [ -d "src/basicmicro_ros2/basicmicro_driver" ]; then
-        PACKAGE_PATH="src/basicmicro_ros2/basicmicro_driver"
+    if [ -d "src/basicmicro_ros2" ]; then
+        PACKAGE_PATH="src/basicmicro_ros2"
     else
-        print_error "Cannot find basicmicro_driver package in workspace"
-        print_error "Expected: src/basicmicro_driver or src/basicmicro_ros2/basicmicro_driver"
+        print_error "Cannot find basicmicro_ros2 package in workspace"
+        print_error "Expected: src/basicmicro_ros2"
         exit 1
     fi
     
@@ -266,7 +264,7 @@ build_package() {
         ls -la "$PROJECT_ROOT" || print_error "Project root does not exist!"
         
         # Copy the driver package to temporary workspace
-        cp -r "$PROJECT_ROOT" "$TEMP_WS/src/basicmicro_driver"
+        cp -r "$PROJECT_ROOT" "$TEMP_WS/src/basicmicro_ros2"
         cd "$TEMP_WS"
         
         # Verify workspace structure
@@ -281,13 +279,13 @@ build_package() {
         
         # Build and install system-wide
         print_status "Building package..."
-        if colcon build --packages-select basicmicro_driver --cmake-args -DCMAKE_BUILD_TYPE=Release; then
+        if colcon build --packages-select basicmicro_ros2 --cmake-args -DCMAKE_BUILD_TYPE=Release; then
             print_status "Build succeeded, installing to system location..."
             
             # Copy built package to system location
-            if [ -d "install/basicmicro_driver" ]; then
+            if [ -d "install/basicmicro_ros2" ]; then
                 print_status "Installing package to system location..."
-                sudo cp -r install/basicmicro_driver/* "$DEFAULT_SYSTEM_PATH/" || {
+                sudo cp -r install/basicmicro_ros2/* "$DEFAULT_SYSTEM_PATH/" || {
                     print_error "Failed to copy package to system location"
                     exit 1
                 }
@@ -309,7 +307,7 @@ build_package() {
         source "/opt/ros/$ROS_DISTRO/setup.bash"
         
         # Build the package
-        colcon build --packages-select basicmicro_driver --cmake-args -DCMAKE_BUILD_TYPE=Release
+        colcon build --packages-select basicmicro_ros2 --cmake-args -DCMAKE_BUILD_TYPE=Release
         
         if [ $? -eq 0 ]; then
             print_success "Package built successfully"
@@ -552,9 +550,9 @@ main() {
     
     # Check if script is run from correct directory
     if [ ! -f "package.xml" ] || [ ! -f "setup.py" ]; then
-        print_error "This script must be run from the basicmicro_driver directory"
-        print_error "Please run: git clone https://github.com/basicmicro/basicmicro_ros2.git"
-        print_error "Then: cd basicmicro_ros2/basicmicro_driver && ./install.sh"
+        print_error "This script must be run from the basicmicro_ros2 directory"
+        print_error "Please run: git clone https://github.com/acidtech/basicmicro_ros2.git"
+        print_error "Then: cd basicmicro_ros2 && ./install.sh"
         exit 1
     fi
     
