@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import os
 from glob import glob
 
-package_name = 'basicmicro_driver'
+package_name = 'basicmicro_ros2'
 
 setup(
     name=package_name,

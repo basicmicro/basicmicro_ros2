@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>basicmicro_driver</name>
+  <name>basicmicro_ros2</name>
   <version>1.0.0</version>
   <description>ROS2 driver for Basicmicro (formerly RoboClaw) motor controllers using ros2_control framework</description>
   
@@ -10,9 +10,9 @@
   
   <author email="your.email@example.com">Your Name</author>
   
-  <url type="website">https://github.com/your-org/basicmicro_driver</url>
-  <url type="bugtracker">https://github.com/your-org/basicmicro_driver/issues</url>
-  <url type="repository">https://github.com/your-org/basicmicro_driver</url>
+  <url type="website">https://github.com/acidtech/basicmicro_ros2</url>
+  <url type="bugtracker">https://github.com/acidtech/basicmicro_ros2/issues</url>
+  <url type="repository">https://github.com/acidtech/basicmicro_ros2</url>
 
   <!-- Build tool dependencies -->
   <buildtool_depend>ament_cmake</buildtool_depend>
