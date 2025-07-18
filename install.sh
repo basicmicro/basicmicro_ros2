@@ -415,7 +415,7 @@ echo -e "${GREEN}[INFO]${NC} Launching Basicmicro ROS2 driver on port: $PORT"
 
 # Launch the driver (works from any directory)
 echo -e "${GREEN}[INFO]${NC} Starting Basicmicro ROS2 driver..."
-ros2 run basicmicro_driver basicmicro_node.py --ros-args -p port:=$PORT
+ros2 run basicmicro_ros2 basicmicro_node.py --ros-args -p port:=$PORT
 
 EOF
         chmod +x "$HOME/launch_basicmicro.sh"
@@ -477,7 +477,7 @@ fi
 
 # Launch the driver
 echo -e "${GREEN}[INFO]${NC} Starting Basicmicro ROS2 driver..."
-ros2 run basicmicro_driver basicmicro_node.py --ros-args -p port:=$PORT
+ros2 run basicmicro_ros2 basicmicro_node.py --ros-args -p port:=$PORT
 
 EOF
         chmod +x "$DEFAULT_WORKSPACE_PATH/launch_basicmicro.sh"
@@ -506,7 +506,7 @@ display_final_instructions() {
     echo ""
     echo -e "${BLUE}Manual Launch:${NC}"
     if [ "$INSTALL_MODE" = "system-wide" ]; then
-        echo -e "   ${YELLOW}ros2 run basicmicro_driver basicmicro_node.py --ros-args -p port:=/dev/ttyACM0${NC}"
+        echo -e "   ${YELLOW}ros2 run basicmicro_ros2 basicmicro_node.py --ros-args -p port:=/dev/ttyACM0${NC}"
         echo -e "   ${YELLOW}# Works from any directory${NC}"
     else
         echo -e "   ${YELLOW}cd $DEFAULT_WORKSPACE_PATH${NC}"
@@ -515,7 +515,7 @@ display_final_instructions() {
         if [ "$USE_VIRTUAL_ENV" = true ]; then
             echo -e "   ${YELLOW}source venv/bin/activate${NC}"
         fi
-        echo -e "   ${YELLOW}ros2 run basicmicro_driver basicmicro_node.py --ros-args -p port:=/dev/ttyACM0${NC}"
+        echo -e "   ${YELLOW}ros2 run basicmicro_ros2 basicmicro_node.py --ros-args -p port:=/dev/ttyACM0${NC}"
     fi
     echo -e "   ${YELLOW}# Replace /dev/ttyACM0 with your actual port${NC}"
     echo ""
