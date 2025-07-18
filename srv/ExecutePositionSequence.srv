@@ -2,7 +2,7 @@
 # Optimized for servo applications with position control
 
 # Position points to execute in sequence  
-basicmicro_driver/PositionPoint[] position_points
+basicmicro_ros2/PositionPoint[] position_points
 
 ---
 # Response

@@ -2,7 +2,7 @@
 # Supports mixed distance and position trajectory types
 
 # Trajectory points to execute in sequence
-basicmicro_driver/TrajectoryPoint[] trajectory_points
+basicmicro_ros2/TrajectoryPoint[] trajectory_points
 
 # Trajectory type - controls validation and execution strategy
 string trajectory_type    # 'distance', 'position', or 'mixed'
